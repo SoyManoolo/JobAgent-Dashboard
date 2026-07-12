@@ -1,6 +1,6 @@
-import { deleteOfferById, fetchMockOffers, fetchOfferById, fetchOffers, PAGE_LIMIT } from './api';
+import { deleteOfferById, fetchMockOffers, fetchOfferById, fetchOffers, PAGE_LIMIT, updateOfferById } from './api';
 import { getDashboardElements } from './dom';
-import { renderOfferDetail, renderOffers, createFiltersPredicate, setStatusText } from './render';
+import { renderOfferDetail, renderOffers, createFiltersPredicate, setError, setLoading, setStatusText } from './render';
 import { labels } from './shared';
 import type { Offer } from './types';
 
@@ -10,6 +10,7 @@ export const initJobDashboard = (): void => {
   let usingMock = false;
   let totalOffers = 0;
   let currentPage = 1;
+  let loading = false;
 
   const currentFilters = () => ({
     empresa: elements.empresa.value,
@@ -23,7 +24,26 @@ export const initJobDashboard = (): void => {
     const offer = usingMock ? offers.find((item) => item.id === id) : await fetchOfferById(id).catch(() => offers.find((item) => item.id === id));
     if (!offer) return;
     elements.modalBody.innerHTML = renderOfferDetail(offer, labels);
+    const save = elements.modalBody.querySelector<HTMLButtonElement>('#save-detail');
+    const status = elements.modalBody.querySelector<HTMLSelectElement>('#detail-status');
+    const notes = elements.modalBody.querySelector<HTMLTextAreaElement>('#detail-notes');
+    save?.addEventListener('click', async () => {
+      if (!status || !notes) return;
+      save.disabled = true;
+      const update = { estado: status.value as Offer['estado'], notas: notes.value || null };
+      const updated = usingMock ? { ...offer, ...update } : await updateOfferById(id, update).catch(() => undefined);
+      if (!updated) { alert('No se pudieron guardar los cambios.'); save.disabled = false; return; }
+      offers = offers.map((item) => item.id === id ? updated : item);
+      elements.modalBody.innerHTML = renderOfferDetail(updated, labels);
+      renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
+    });
     elements.modal.showModal();
+  };
+
+  const primaryAction = (offer: Offer): void => {
+    if (!offer.aplicacion_sencilla) { window.open(offer.url, '_blank', 'noopener,noreferrer'); return; }
+    offers = offers.map((item) => item.id === offer.id ? { ...item, estado: 'lista_para_aplicar' } : item);
+    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
   };
 
   const deleteOffer = async (id: string): Promise<void> => {
@@ -44,7 +64,7 @@ export const initJobDashboard = (): void => {
       void loadOffers();
       return;
     }
-    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer);
+    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
   };
 
   const loadOffers = async (): Promise<void> => {
@@ -63,7 +83,7 @@ export const initJobDashboard = (): void => {
       usingMock = true;
       setStatusText(elements, 'Vista previa · datos simulados', true);
     }
-    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer);
+    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
   };
 
   const debounce = <T extends (...args: never[]) => void>(

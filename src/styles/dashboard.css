@@ -404,6 +404,54 @@ dialog::backdrop {
   margin: 18px 0;
 }
 
+.review {
+  display: grid;
+  gap: 12px;
+}
+
+.review label {
+  display: grid;
+  gap: 6px;
+  color: #526057;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.review select,
+.review textarea {
+  width: 100%;
+  border: 1px solid #d7dfd7;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #2f3c36;
+  font: inherit;
+}
+
+.review textarea {
+  resize: vertical;
+}
+
+.review button {
+  width: fit-content;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid #334b41;
+  border-radius: 10px;
+  background: #334b41;
+  color: #fff;
+  font-weight: 700;
+}
+
+.review button:hover:not(:disabled) {
+  background: #263d33;
+}
+
+.review button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .modal-content section {
   padding-top: 16px;
   border-top: 1px solid #e5eae5;

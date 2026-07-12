@@ -1,43 +1,35 @@
-# Astro Starter Kit: Minimal
+# JobAgent Dashboard
+
+Panel web para revisar las ofertas encontradas por el backend de JobAgent antes de decidir una candidatura.
+
+## Funcionalidades
+
+- Filtros, paginación y detalle de ofertas.
+- Scores por perfil, motivo de encaje, idioma, notas y fechas.
+- Revisión manual de estado y notas; se simula localmente cuando se usan mocks.
+- Acciones según el tipo de candidatura: preparar solicitud sencilla o abrir una oferta externa.
+- Borrado lógico mediante la API y datos simulados cuando el backend no está disponible.
+
+## Arquitectura
+
+Astro renderiza la interfaz y los módulos de `src/scripts/dashboard` separan API, DOM, controlador, tipos y renderizado. El frontend consume `GET`, `DELETE` y tiene preparado el contrato `PATCH /ofertas/{id}` del backend JobAgent.
+
+## Ejecución local
 
 ```sh
-pnpm create astro@latest -- --template minimal
+cp .env.example .env
+pnpm install
+pnpm dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+`PUBLIC_API_BASE_URL` define la API y por defecto es `http://localhost:8000/api/v1`. Si no está disponible, el dashboard muestra `public/data/ofertas.json` para permitir trabajar sin backend.
 
-## 🚀 Project Structure
+## Stack
 
-Inside of your Astro project, you'll see the following folders and files:
+Astro, TypeScript, CSS nativo y FastAPI (backend JobAgent).
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## Roadmap
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Conectar la preparación y envío real de solicitudes.
+- Persistir notas y estado mediante PATCH.
+- Añadir modalidad de trabajo cuando la API la exponga.

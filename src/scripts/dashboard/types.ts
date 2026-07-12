@@ -1,3 +1,8 @@
+export type OfferStatus = 'extraida' | 'analizada' | 'pendiente_revision' | 'lista_para_aplicar' | 'aplicada' | 'descartada' | 'error';
+export type RecommendedProfile = 'backend' | 'fullstack' | 'ia' | 'hibrido' | 'desconocido';
+export type Seniority = 'junior' | 'mid' | 'senior' | 'desconocido';
+export type OfferUpdate = { estado?: OfferStatus; notas?: string | null };
+
 export type Offer = {
   id: string;
   id_plataforma: string;
@@ -8,16 +13,16 @@ export type Offer = {
   descripcion: string;
   salario: string | null;
   ubicacion: string | null;
-  estado: string;
+  estado: OfferStatus;
   eliminado: boolean;
   notas: string | null;
   fecha_descubrimiento: string;
   fecha_aplicacion: string | null;
   aplicacion_sencilla: boolean;
   preguntas_formulario: unknown[] | null;
-  perfil_recomendado: string | null;
+  perfil_recomendado: RecommendedProfile | null;
   idioma_oferta: string | null;
-  seniority: string | null;
+  seniority: Seniority | null;
   score_backend: number | null;
   score_fullstack: number | null;
   score_ia: number | null;
@@ -71,4 +76,8 @@ export type DashboardElements = {
   previousPage: HTMLButtonElement;
   nextPage: HTMLButtonElement;
   pageInfo: HTMLElement;
+  loadState: HTMLElement;
+  errorState: HTMLElement;
+  errorMessage: HTMLElement;
+  retryLoad: HTMLButtonElement;
 };

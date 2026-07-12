@@ -16,6 +16,8 @@ export const setStatusText = (elements: DashboardElements, text: string, mock: b
   elements.connection.innerHTML = `<span></span>${text}`;
   elements.connection.classList.toggle('mock', mock);
 };
+export const setLoading = (elements: DashboardElements, loading: boolean): void => { elements.loadState.hidden = !loading; elements.loadState.textContent = loading ? 'Cargando ofertas…' : ''; };
+export const setError = (elements: DashboardElements, message = ''): void => { elements.errorState.hidden = !message; elements.errorMessage.textContent = message; };
 
 export const renderOffers = (
   elements: DashboardElements,
@@ -26,6 +28,7 @@ export const renderOffers = (
   labels: LabelMap,
   openDetail: (id: string) => void,
   deleteOffer: (id: string) => void,
+  primaryAction: (offer: Offer) => void,
 ): void => {
   elements.jobs.innerHTML = '';
   elements.total.textContent = String(total);
@@ -54,7 +57,7 @@ export const renderOffers = (
     state.classList.add(`state-${offer.estado}`);
 
     requiredChild<HTMLElement>(card, '.score strong').textContent = String(offer.score_encaje ?? '—');
-    requiredChild<HTMLElement>(card, '.tags').innerHTML = `${tag(labels[(offer.perfil_recomendado ?? '') as LabelKey] || 'Sin perfil', 'profile')} ${tag(offer.aplicacion_sencilla ? 'Aplicación sencilla' : 'Con preguntas', offer.aplicacion_sencilla ? 'easy' : '')}`;
+    requiredChild<HTMLElement>(card, '.tags').innerHTML = `${tag(labels[(offer.perfil_recomendado ?? '') as LabelKey] || 'Sin perfil', 'profile')} ${tag(offer.aplicacion_sencilla ? 'Solicitud sencilla' : 'Aplicación externa', offer.aplicacion_sencilla ? 'easy' : '')}`;
 
     card.addEventListener('click', () => openDetail(offer.id));
     card.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -64,7 +67,9 @@ export const renderOffers = (
       }
     });
 
-    requiredChild<HTMLButtonElement>(card, '.apply').addEventListener('click', (event: MouseEvent) => event.stopPropagation());
+    const apply = requiredChild<HTMLButtonElement>(card, '.apply');
+    apply.textContent = offer.aplicacion_sencilla ? 'Preparar solicitud' : 'Abrir oferta';
+    apply.addEventListener('click', (event: MouseEvent) => { event.stopPropagation(); primaryAction(offer); });
     requiredChild<HTMLButtonElement>(card, '.delete').addEventListener('click', (event: MouseEvent) => {
       event.stopPropagation();
       deleteOffer(offer.id);
@@ -75,8 +80,9 @@ export const renderOffers = (
 };
 
 export const renderOfferDetail = (offer: Offer, labels: LabelMap): string => {
-  const keywords = (offer.keywords ?? []).map((word: string) => tag(word)).join('');
-  const initials = escapeHtml(initialsFor(offer.empresa));
-
-  return `<p class="eyebrow">${escapeHtml(offer.plataforma || 'Oferta')}</p><div class="modal-title"><div><span class="company-logo">${initials}</span></div><div><p>${escapeHtml(offer.empresa)}</p><h2>${escapeHtml(offer.titulo)}</h2><span class="location">${escapeHtml(offer.ubicacion || 'Ubicación no indicada')}</span></div></div><div class="modal-meta"><span class="status state-${escapeHtml(offer.estado)}">${escapeHtml(labels[offer.estado as LabelKey] || offer.estado)}</span><span class="score-inline">${offer.score_encaje ?? '—'} <small>score de encaje</small></span></div><section><h3>Resumen</h3><p>${escapeHtml(offer.resumen || offer.descripcion)}</p></section><section><h3>Descripción</h3><p>${escapeHtml(offer.descripcion)}</p></section><section><h3>Información</h3><dl><div><dt>Perfil recomendado</dt><dd>${escapeHtml(labels[(offer.perfil_recomendado ?? '') as LabelKey] || 'No definido')}</dd></div><div><dt>Senioridad</dt><dd>${escapeHtml(offer.seniority || 'No definida')}</dd></div><div><dt>Salario</dt><dd>${escapeHtml(offer.salario || 'No indicado')}</dd></div><div><dt>Aplicación</dt><dd>${offer.aplicacion_sencilla ? 'Sencilla' : 'Con preguntas'}</dd></div></dl></section>${keywords ? `<section><h3>Palabras clave</h3><div class="tags">${keywords}</div></section>` : ''}<div class="modal-actions"><button class="apply" type="button">Postularme</button><a href="${escapeHtml(offer.url)}" target="_blank" rel="noreferrer">Ver oferta original ↗</a></div>`;
+  const value = (item: string | number | null | undefined) => escapeHtml(String(item ?? 'No indicado'));
+  const profile = labels[(offer.perfil_recomendado ?? '') as LabelKey] ?? 'No definido';
+  const statuses = (Object.keys(labels) as LabelKey[]).filter((key) => ['extraida', 'analizada', 'pendiente_revision', 'lista_para_aplicar', 'aplicada', 'descartada', 'error'].includes(key)).map((key) => `<option value="${key}" ${offer.estado === key ? 'selected' : ''}>${labels[key]}</option>`).join('');
+  const detail = (label: string, item: string | number | null | undefined) => `<div><dt>${label}</dt><dd>${value(item)}</dd></div>`;
+  return `<p class="eyebrow">${value(offer.plataforma)}</p><div class="modal-title"><span class="company-logo">${escapeHtml(initialsFor(offer.empresa))}</span><div><p>${value(offer.empresa)}</p><h2>${value(offer.titulo)}</h2><span class="location">${value(offer.ubicacion)}</span></div></div><div class="modal-meta"><span class="status state-${offer.estado}">${labels[offer.estado]}</span><span class="score-inline">${offer.score_encaje ?? '—'} <small>score de encaje</small></span></div><section><h3>Resumen</h3><p>${value(offer.resumen || offer.descripcion)}</p></section><section><h3>Por qué encaja</h3><p>${value(offer.motivo_encaje || 'Sin análisis de encaje todavía.')}</p></section><section><h3>Información</h3><dl>${detail('Perfil recomendado', profile)}${detail('Senioridad', offer.seniority)}${detail('Idioma', offer.idioma_oferta)}${detail('Descubierta', new Date(offer.fecha_descubrimiento).toLocaleDateString('es-ES'))}${detail('Tipo de aplicación', offer.aplicacion_sencilla ? 'Solicitud sencilla' : 'Aplicación externa')}${detail('Salario', offer.salario)}</dl></section><section><h3>Scores por perfil</h3><dl>${detail('Backend', offer.score_backend)}${detail('Full stack', offer.score_fullstack)}${detail('IA', offer.score_ia)}</dl></section><section class="review"><h3>Revisión manual</h3><label>Estado<select id="detail-status">${statuses}</select></label><label>Notas<textarea id="detail-notes" rows="4">${escapeHtml(offer.notas ?? '')}</textarea></label><button id="save-detail" type="button">Guardar cambios</button></section>`;
 };

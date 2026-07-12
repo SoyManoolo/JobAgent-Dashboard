@@ -1,4 +1,4 @@
-import type { Offer, OffersResponse } from './types';
+import type { Offer, OffersResponse, OfferUpdate } from './types';
 
 export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1';
 export const MOCK_URL = '/data/ofertas.json';
@@ -28,7 +28,7 @@ export const fetchOffers = async (filters: {
   sencilla: string;
 }, page: number, limit: number): Promise<OffersResponse> => {
   const response = await fetch(`${API_BASE_URL}/ofertas/?${buildApiParams(filters, page, limit)}`);
-  if (!response.ok) throw new Error('API no disponible');
+  if (!response.ok) throw new Error(`La API respondió con error ${response.status}`);
   return (await response.json()) as OffersResponse;
 };
 
@@ -45,4 +45,10 @@ export const fetchOfferById = async (id: string): Promise<Offer> => {
 export const deleteOfferById = async (id: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/ofertas/${id}`, { method: 'DELETE' });
   if (!response.ok) throw new Error('No se pudo eliminar la oferta');
+};
+
+export const updateOfferById = async (id: string, data: OfferUpdate): Promise<Offer> => {
+  const response = await fetch(`${API_BASE_URL}/ofertas/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  if (!response.ok) throw new Error('No se pudo actualizar la oferta');
+  return response.json() as Promise<Offer>;
 };

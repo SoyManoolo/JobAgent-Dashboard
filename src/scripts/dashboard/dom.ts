@@ -32,4 +32,8 @@ export const getDashboardElements = (): DashboardElements => ({
   previousPage: required<HTMLButtonElement>('#previous-page'),
   nextPage: required<HTMLButtonElement>('#next-page'),
   pageInfo: required<HTMLElement>('#page-info'),
+  loadState: required<HTMLElement>('#load-state'),
+  errorState: required<HTMLElement>('#error-state'),
+  errorMessage: required<HTMLElement>('#error-message'),
+  retryLoad: required<HTMLButtonElement>('#retry-load'),
 });
