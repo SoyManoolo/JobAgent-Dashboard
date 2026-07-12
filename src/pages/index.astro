@@ -39,6 +39,11 @@ import '../styles/dashboard.css';
       <div class="results-header"><p id="results-count">Cargando...</p><p>Haz clic en una oferta para ver el detalle</p></div>
       <section class="jobs" id="jobs" aria-live="polite"></section>
       <p class="empty" id="empty" hidden>No hay ofertas que coincidan con los filtros.</p>
+      <nav class="pagination" id="pagination" aria-label="Paginación de ofertas" hidden>
+        <button id="previous-page" type="button">Anterior</button>
+        <span id="page-info"></span>
+        <button id="next-page" type="button">Siguiente</button>
+      </nav>
     </main>
 
     <dialog id="detail-modal">

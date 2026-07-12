@@ -20,14 +20,22 @@ export const setStatusText = (elements: DashboardElements, text: string, mock: b
 export const renderOffers = (
   elements: DashboardElements,
   offers: Offer[],
+  total: number,
+  currentPage: number,
+  pageLimit: number,
   labels: LabelMap,
   openDetail: (id: string) => void,
   deleteOffer: (id: string) => void,
 ): void => {
   elements.jobs.innerHTML = '';
-  elements.total.textContent = String(offers.length);
-  elements.results.textContent = `${offers.length} ${offers.length === 1 ? 'oferta encontrada' : 'ofertas encontradas'}`;
+  elements.total.textContent = String(total);
+  elements.results.textContent = `${total} ${total === 1 ? 'oferta encontrada' : 'ofertas encontradas'}`;
   elements.empty.hidden = offers.length !== 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageLimit));
+  elements.pagination.hidden = total === 0;
+  elements.previousPage.disabled = currentPage <= 1;
+  elements.nextPage.disabled = currentPage >= totalPages;
+  elements.pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
 
   offers.forEach((offer) => {
     const fragment = elements.template.content.cloneNode(true) as DocumentFragment;

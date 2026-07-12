@@ -28,4 +28,8 @@ export const getDashboardElements = (): DashboardElements => ({
   sencilla: required<HTMLSelectElement>('#sencilla'),
   modalClose: required<HTMLButtonElement>('#modal-close'),
   clearFilters: required<HTMLButtonElement>('#clear-filters'),
+  pagination: required<HTMLElement>('#pagination'),
+  previousPage: required<HTMLButtonElement>('#previous-page'),
+  nextPage: required<HTMLButtonElement>('#next-page'),
+  pageInfo: required<HTMLElement>('#page-info'),
 });

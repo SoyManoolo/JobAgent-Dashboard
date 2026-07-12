@@ -1,7 +1,8 @@
 import type { Offer, OffersResponse } from './types';
 
-export const API_BASE_URL = 'http://localhost:8000/api/v1';
+export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1';
 export const MOCK_URL = '/data/ofertas.json';
+export const PAGE_LIMIT = 10;
 
 export const buildApiParams = (filters: {
   empresa: string;
@@ -9,8 +10,8 @@ export const buildApiParams = (filters: {
   perfil: string;
   score: string;
   sencilla: string;
-}): URLSearchParams => {
-  const params = new URLSearchParams({ pagina: '1', limite: '50' });
+}, page: number, limit: number): URLSearchParams => {
+  const params = new URLSearchParams({ pagina: String(page), limite: String(limit) });
   if (filters.empresa) params.set('empresa', filters.empresa);
   if (filters.estado) params.set('estado', filters.estado);
   if (filters.perfil) params.set('perfil', filters.perfil);
@@ -25,8 +26,8 @@ export const fetchOffers = async (filters: {
   perfil: string;
   score: string;
   sencilla: string;
-}): Promise<OffersResponse> => {
-  const response = await fetch(`${API_BASE_URL}/ofertas/?${buildApiParams(filters)}`);
+}, page: number, limit: number): Promise<OffersResponse> => {
+  const response = await fetch(`${API_BASE_URL}/ofertas/?${buildApiParams(filters, page, limit)}`);
   if (!response.ok) throw new Error('API no disponible');
   return (await response.json()) as OffersResponse;
 };

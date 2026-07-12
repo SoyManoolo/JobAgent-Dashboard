@@ -322,6 +322,31 @@ h1 {
   color: #647068;
 }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  color: #556259;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pagination button {
+  min-width: 94px;
+  height: 38px;
+  border: 1px solid #d7dfd7;
+  border-radius: 10px;
+  background: #fff;
+  color: #334139;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 dialog {
   border: 0;
   padding: 0;

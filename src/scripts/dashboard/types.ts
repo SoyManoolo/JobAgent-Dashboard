@@ -67,4 +67,8 @@ export type DashboardElements = {
   sencilla: HTMLSelectElement;
   modalClose: HTMLButtonElement;
   clearFilters: HTMLButtonElement;
+  pagination: HTMLElement;
+  previousPage: HTMLButtonElement;
+  nextPage: HTMLButtonElement;
+  pageInfo: HTMLElement;
 };
