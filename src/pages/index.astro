@@ -1,17 +1,74 @@
 ---
-
+const title = 'JobAgent · Ofertas';
+import '../styles/dashboard.css';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Panel de seguimiento de ofertas de JobAgent" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">J</span><span>JobAgent</span></div>
+        <div class="connection" id="connection-status"><span></span>Cargando ofertas...</div>
+      </header>
+
+      <section class="intro">
+        <div>
+          <p class="eyebrow">PANEL DE OFERTAS</p>
+          <h1>Encuentra tu próxima oportunidad.</h1>
+          <p class="lede">Revisa, filtra y gestiona las ofertas que ha encontrado tu agente.</p>
+        </div>
+        <div class="total-card"><span>Ofertas activas</span><strong id="total-count">-</strong></div>
+      </section>
+
+      <section class="filters" aria-label="Filtros de ofertas">
+        <label class="search"><span aria-hidden="true">⌕</span><input id="empresa" type="search" placeholder="Buscar por empresa" /></label>
+        <label><span>Estado</span><select id="estado"><option value="">Todos</option><option value="extraida">Extraída</option><option value="analizada">Analizada</option><option value="pendiente_revision">Pendiente de revisión</option><option value="lista_para_aplicar">Lista para aplicar</option><option value="aplicada">Aplicada</option><option value="descartada">Descartada</option><option value="error">Error</option></select></label>
+        <label><span>Perfil</span><select id="perfil"><option value="">Todos</option><option value="backend">Backend</option><option value="fullstack">Full stack</option><option value="ia">IA</option><option value="hibrido">Híbrido</option><option value="desconocido">Desconocido</option></select></label>
+        <label><span>Score mínimo</span><select id="score"><option value="">Cualquiera</option><option value="50">50+</option><option value="60">60+</option><option value="70">70+</option><option value="80">80+</option><option value="90">90+</option></select></label>
+        <label><span>Solicitud</span><select id="sencilla"><option value="">Todas</option><option value="true">Sencilla</option><option value="false">Con preguntas</option></select></label>
+        <button class="clear" id="clear-filters" type="button">Limpiar filtros</button>
+      </section>
+
+      <div class="results-header"><p id="results-count">Cargando...</p><p>Haz clic en una oferta para ver el detalle</p></div>
+      <section class="jobs" id="jobs" aria-live="polite"></section>
+      <p class="empty" id="empty" hidden>No hay ofertas que coincidan con los filtros.</p>
+    </main>
+
+    <dialog id="detail-modal">
+      <article class="modal-content">
+        <button class="modal-close" id="modal-close" aria-label="Cerrar detalle" type="button">×</button>
+        <div id="modal-body"></div>
+      </article>
+    </dialog>
+
+    <template id="job-template">
+      <article class="job-card" tabindex="0">
+        <div class="job-main">
+          <div class="company-row"><span class="company-logo"></span><span class="company"></span></div>
+          <h2></h2>
+          <p class="location"></p>
+          <p class="summary"></p>
+          <div class="tags"></div>
+        </div>
+        <div class="job-side">
+          <span class="status"></span>
+          <div class="score"><strong></strong><span>score</span></div>
+          <div class="card-actions"><button class="apply" type="button">Postularme</button><button class="delete" type="button" aria-label="Eliminar oferta">⌫</button></div>
+        </div>
+      </article>
+    </template>
+
+    <script type="module">
+      import { initJobDashboard } from '../scripts/jobDashboard';
+
+      initJobDashboard();
+    </script>
+  </body>
 </html>
