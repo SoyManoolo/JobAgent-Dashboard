@@ -19,6 +19,7 @@ export const getDashboardElements = (): DashboardElements => ({
   total: required<HTMLElement>('#total-count'),
   results: required<HTMLElement>('#results-count'),
   connection: required<HTMLElement>('#connection-status'),
+  mockNotice: required<HTMLElement>('#mock-notice'),
   modal: required<HTMLDialogElement>('#detail-modal'),
   modalBody: required<HTMLElement>('#modal-body'),
   empresa: required<HTMLInputElement>('#empresa'),

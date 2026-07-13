@@ -36,6 +36,10 @@ import '../styles/dashboard.css';
         <button class="clear" id="clear-filters" type="button">Limpiar filtros</button>
       </section>
 
+      <aside class="mock-notice" id="mock-notice" role="status" hidden>
+        Estás viendo datos simulados porque no se ha podido conectar con la API. No tomes decisiones basándote en esta vista.
+      </aside>
+
       <div class="results-header"><p id="results-count">Cargando...</p><p>Haz clic en una oferta para ver el detalle</p></div>
       <div class="load-state" id="load-state" hidden></div>
       <div class="error-state" id="error-state" hidden><span id="error-message"></span><button id="retry-load" type="button">Reintentar</button></div>

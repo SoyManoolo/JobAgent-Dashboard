@@ -63,6 +63,7 @@ export type DashboardElements = {
   total: HTMLElement;
   results: HTMLElement;
   connection: HTMLElement;
+  mockNotice: HTMLElement;
   modal: HTMLDialogElement;
   modalBody: HTMLElement;
   empresa: HTMLInputElement;

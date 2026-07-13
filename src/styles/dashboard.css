@@ -156,6 +156,7 @@ h1 {
 .filters .search {
   grid-template-columns: auto 1fr;
   align-items: center;
+  align-self: end;
 }
 
 .filters .search span {
@@ -172,6 +173,17 @@ h1 {
   background: #fff;
   color: #44524a;
   font-weight: 700;
+}
+
+.mock-notice {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e5c98e;
+  border-radius: 12px;
+  background: #fff8e7;
+  color: #795719;
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .results-header {
