@@ -1,14 +1,24 @@
-import { deleteOfferById, fetchMockOffers, fetchOfferById, fetchOffers, PAGE_LIMIT, updateOfferById } from './api';
+import {
+  deleteOfferById,
+  fetchDashboardStats,
+  fetchOfferById,
+  fetchOffers,
+  generateOfferAnswers,
+  PAGE_LIMIT,
+  processEasyApply,
+  updateOfferById,
+  updateOfferNotes,
+} from './api';
 import { getDashboardElements } from './dom';
-import { renderOfferDetail, renderOffers, createFiltersPredicate, setError, setLoading, setStatusText } from './render';
+import { renderOfferDetail, renderOffers, setError, setLoading, setStatusText } from './render';
 import { labels } from './shared';
 import type { Offer } from './types';
 
 export const initJobDashboard = (): void => {
   const elements = getDashboardElements();
   let offers: Offer[] = [];
-  let usingMock = false;
   let totalOffers = 0;
+  let activeOffers = 0;
   let currentPage = 1;
   let loading = false;
 
@@ -35,63 +45,64 @@ export const initJobDashboard = (): void => {
       ) return;
 
       save.disabled = true;
-      const update = { estado: nextStatus, notas: notes.value || null };
-      const updated = usingMock ? { ...offer, ...update } : await updateOfferById(id, update).catch(() => undefined);
+      const notesValue = notes.value || null;
+      const updated = await (async () => {
+        const statusUpdated = nextStatus === offer.estado
+          ? offer
+          : await updateOfferById(offer.id, { estado: nextStatus });
+        return notesValue === offer.notas
+          ? statusUpdated
+          : updateOfferNotes(offer.id, notesValue);
+      })().catch(() => undefined);
       if (!updated) { alert('No se pudieron guardar los cambios.'); save.disabled = false; return; }
-      offers = offers.map((item) => item.id === id ? updated : item);
+      offers = offers.map((item) => item.id === offer.id ? updated : item);
       showOfferDetail(updated);
       renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
     });
   };
 
   const openDetail = async (id: string): Promise<void> => {
-    const offer = usingMock ? offers.find((item) => item.id === id) : await fetchOfferById(id).catch(() => offers.find((item) => item.id === id));
+    const offer = await fetchOfferById(id).catch(() => offers.find((item) => item.id === id));
     if (!offer) return;
     showOfferDetail(offer);
     elements.modal.showModal();
   };
 
   const primaryAction = async (offer: Offer): Promise<void> => {
-    if (!offer.aplicacion_sencilla && !['analizada', 'pendiente_revision'].includes(offer.estado)) {
+    if (!offer.aplicacion_sencilla || offer.estado === 'lista_para_aplicar') {
       window.open(offer.url, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    const estado = offer.estado === 'analizada'
-      ? 'pendiente_revision'
-      : 'lista_para_aplicar';
-    const updated = usingMock
-      ? { ...offer, estado }
-      : await updateOfferById(offer.id, { estado }).catch(() => undefined);
-
-    if (!updated) {
-      alert('No se ha podido actualizar el estado de la oferta.');
+    try {
+      if (offer.estado === 'analizada') {
+        await processEasyApply(offer.id);
+      } else if (offer.estado === 'pendientes_respuestas') {
+        await generateOfferAnswers(offer.id);
+      } else {
+        window.open(offer.url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+    } catch {
+      alert('No se ha podido preparar la solicitud en la API.');
       return;
     }
-
-    offers = offers.map((item) => item.id === offer.id ? updated : item);
-    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
+    void loadOffers();
   };
 
   const deleteOffer = async (id: string): Promise<void> => {
     if (!confirm('¿Quieres eliminar esta oferta?')) return;
 
-    if (!usingMock) {
-      try {
-        await deleteOfferById(id);
-      } catch {
-        alert('No se ha podido eliminar la oferta en la API.');
-        return;
-      }
+    try {
+      await deleteOfferById(id);
+    } catch {
+      alert('No se ha podido eliminar la oferta en la API.');
+      return;
     }
 
     offers = offers.filter((offer) => offer.id !== id);
     totalOffers = Math.max(0, totalOffers - 1);
-    if (!usingMock) {
-      void loadOffers();
-      return;
-    }
-    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
+    void loadOffers();
   };
 
   const loadOffers = async (): Promise<void> => {
@@ -101,30 +112,23 @@ export const initJobDashboard = (): void => {
     setError(elements);
     try {
       const data = await fetchOffers(currentFilters(), currentPage, PAGE_LIMIT);
+      const stats = await fetchDashboardStats().catch(() => ({ total_ofertas: data.total, aplicadas: 0, descartadas: 0 }));
       offers = data.resultados ?? [];
       totalOffers = data.total;
-      usingMock = false;
+      activeOffers = stats.total_ofertas;
       setStatusText(elements, 'API conectada', false);
     } catch {
-      try {
-        const data = await fetchMockOffers();
-        const matchingOffers = data.resultados.filter(createFiltersPredicate(elements));
-        totalOffers = matchingOffers.length;
-        const firstOffer = (currentPage - 1) * PAGE_LIMIT;
-        offers = matchingOffers.slice(firstOffer, firstOffer + PAGE_LIMIT);
-        usingMock = true;
-        setStatusText(elements, 'Vista previa · datos simulados', true);
-      } catch {
-        offers = [];
-        totalOffers = 0;
-        setStatusText(elements, 'Sin conexión', false);
-        setError(elements, 'No se han podido cargar las ofertas. Comprueba la conexión e inténtalo de nuevo.');
-      }
+      offers = [];
+      totalOffers = 0;
+      activeOffers = 0;
+      setStatusText(elements, 'Sin conexión', false);
+      setError(elements, 'No se han podido cargar las ofertas. Comprueba la conexión e inténtalo de nuevo.');
     } finally {
       loading = false;
       setLoading(elements, false);
     }
     renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
+    if (elements.errorState.hidden) elements.total.textContent = String(activeOffers);
   };
 
   const debounce = <T extends (...args: never[]) => void>(

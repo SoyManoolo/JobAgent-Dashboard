@@ -496,6 +496,40 @@ dialog::backdrop {
   margin: 4px 0 0;
 }
 
+.form-questions {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 24px;
+}
+
+.form-questions li {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f4f7f4;
+  color: #344239;
+}
+
+.form-questions p {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.question-meta span {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #e3ebe4;
+  color: #526057;
+  font-size: 12px;
+}
+
 @media (max-width: 1024px) {
   .filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));

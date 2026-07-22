@@ -29,16 +29,12 @@ import '../styles/dashboard.css';
 
       <section class="filters" aria-label="Filtros de ofertas">
         <label class="search"><span aria-hidden="true">⌕</span><input id="empresa" type="search" placeholder="Buscar por empresa" /></label>
-        <label><span>Estado</span><select id="estado"><option value="">Todos</option><option value="extraida">Extraída</option><option value="analizada">Analizada</option><option value="pendiente_revision">Pendiente de revisión</option><option value="lista_para_aplicar">Lista para aplicar</option><option value="aplicada">Aplicada</option><option value="descartada">Descartada</option><option value="error">Error</option></select></label>
-        <label><span>Perfil</span><select id="perfil"><option value="">Todos</option><option value="backend">Backend</option><option value="fullstack">Full stack</option><option value="ia">IA</option><option value="hibrido">Híbrido</option><option value="desconocido">Desconocido</option></select></label>
+        <label><span>Estado</span><select id="estado"><option value="">Todos</option><option value="extraida">Extraída</option><option value="analizada">Analizada</option><option value="pendientes_respuestas">Pendiente de respuestas</option><option value="lista_para_aplicar">Lista para aplicar</option><option value="aplicada">Aplicada</option><option value="descartada">Descartada</option><option value="error">Error</option></select></label>
+        <label><span>Perfil</span><select id="perfil"><option value="">Todos</option><option value="backend">Backend</option><option value="ia">IA</option><option value="desconocido">Desconocido</option></select></label>
         <label><span>Score mínimo</span><select id="score"><option value="">Cualquiera</option><option value="50">50+</option><option value="60">60+</option><option value="70">70+</option><option value="80">80+</option><option value="90">90+</option></select></label>
         <label><span>Solicitud</span><select id="sencilla"><option value="">Todas</option><option value="true">Sencilla</option><option value="false">Con preguntas</option></select></label>
         <button class="clear" id="clear-filters" type="button">Limpiar filtros</button>
       </section>
-
-      <aside class="mock-notice" id="mock-notice" role="status" hidden>
-        Estás viendo datos simulados porque no se ha podido conectar con la API. No tomes decisiones basándote en esta vista.
-      </aside>
 
       <div class="results-header"><p id="results-count">Cargando...</p><p>Haz clic en una oferta para ver el detalle</p></div>
       <div class="load-state" id="load-state" hidden></div>

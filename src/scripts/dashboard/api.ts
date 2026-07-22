@@ -1,7 +1,6 @@
-import type { Offer, OffersResponse, OfferUpdate } from './types';
+import type { DashboardStats, Offer, OffersResponse, OfferUpdate } from './types';
 
-export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1';
-export const MOCK_URL = '/data/ofertas.json';
+export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1';
 export const PAGE_LIMIT = 10;
 
 export const buildApiParams = (filters: {
@@ -32,8 +31,10 @@ export const fetchOffers = async (filters: {
   return (await response.json()) as OffersResponse;
 };
 
-export const fetchMockOffers = async (): Promise<OffersResponse> => {
-  return (await fetch(MOCK_URL).then((response) => response.json())) as OffersResponse;
+export const fetchDashboardStats = async (): Promise<DashboardStats> => {
+  const response = await fetch(`${API_BASE_URL}/dashboard/stats`);
+  if (!response.ok) throw new Error(`No se pudieron cargar las estadísticas (${response.status})`);
+  return response.json() as Promise<DashboardStats>;
 };
 
 export const fetchOfferById = async (id: string): Promise<Offer> => {
@@ -51,4 +52,26 @@ export const updateOfferById = async (id: string, data: OfferUpdate): Promise<Of
   const response = await fetch(`${API_BASE_URL}/ofertas/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   if (!response.ok) throw new Error('No se pudo actualizar la oferta');
   return response.json() as Promise<Offer>;
+};
+
+export const updateOfferNotes = async (id: string, notas: string | null): Promise<Offer> => {
+  const response = await fetch(`${API_BASE_URL}/dashboard/ofertas/${id}/notas`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notas }),
+  });
+  if (!response.ok) throw new Error('No se pudieron actualizar las notas');
+  return response.json() as Promise<Offer>;
+};
+
+export const processEasyApply = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/scraper/linkedin/easyapply/${id}`, { method: 'POST' });
+  if (!response.ok) throw new Error('No se pudo preparar la solicitud sencilla');
+};
+
+export const generateOfferAnswers = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/agent/ofertas/${id}/responder`, { method: 'POST' });
+  if (!response.ok) throw new Error('No se pudieron generar las respuestas');
+  const data = await response.json() as { error?: string };
+  if (data.error) throw new Error(data.error);
 };

@@ -1,7 +1,23 @@
-export type OfferStatus = 'extraida' | 'analizada' | 'pendiente_revision' | 'lista_para_aplicar' | 'aplicada' | 'descartada' | 'error';
-export type RecommendedProfile = 'backend' | 'fullstack' | 'ia' | 'hibrido' | 'desconocido';
+export type OfferStatus = 'extraida' | 'analizada' | 'pendientes_respuestas' | 'lista_para_aplicar' | 'aplicada' | 'descartada' | 'error';
+export type RecommendedProfile = 'backend' | 'ia' | 'desconocido';
 export type Seniority = 'junior' | 'mid' | 'senior' | 'desconocido';
 export type OfferUpdate = { estado?: OfferStatus; notas?: string | null };
+
+export type FormQuestion = {
+  pregunta_id?: string;
+  texto?: string;
+  pregunta?: string;
+  tipo?: string;
+  obligatoria?: boolean;
+  opciones?: string[];
+};
+
+export type FormAnswer = {
+  pregunta_id?: string;
+  respuesta?: string | number | boolean | null;
+  valor_seleccionado?: string | null;
+  informacion_suficiente?: boolean;
+};
 
 export type Offer = {
   id: string;
@@ -19,7 +35,8 @@ export type Offer = {
   fecha_descubrimiento: string;
   fecha_aplicacion: string | null;
   aplicacion_sencilla: boolean;
-  preguntas_formulario: unknown[] | null;
+  preguntas_formulario: FormQuestion[] | null;
+  respuestas?: FormAnswer[] | { respuestas?: FormAnswer[] } | null;
   perfil_recomendado: RecommendedProfile | null;
   idioma_oferta: string | null;
   seniority: Seniority | null;
@@ -39,18 +56,22 @@ export type OffersResponse = {
   resultados: Offer[];
 };
 
+export type DashboardStats = {
+  total_ofertas: number;
+  aplicadas: number;
+  descartadas: number;
+};
+
 export type LabelMap = {
   extraida: string;
   analizada: string;
-  pendiente_revision: string;
+  pendientes_respuestas: string;
   lista_para_aplicar: string;
   aplicada: string;
   descartada: string;
   error: string;
   backend: string;
-  fullstack: string;
   ia: string;
-  hibrido: string;
   desconocido: string;
 };
 
@@ -63,7 +84,6 @@ export type DashboardElements = {
   total: HTMLElement;
   results: HTMLElement;
   connection: HTMLElement;
-  mockNotice: HTMLElement;
   modal: HTMLDialogElement;
   modalBody: HTMLElement;
   empresa: HTMLInputElement;

@@ -1,5 +1,5 @@
 import { requiredChild } from './dom';
-import type { DashboardElements, LabelMap, LabelKey, Offer } from './types';
+import type { DashboardElements, FormAnswer, FormQuestion, LabelMap, LabelKey, Offer } from './types';
 import { escapeHtml, initialsFor, tag } from './format';
 
 export const createFiltersPredicate = (elements: DashboardElements) => (offer: Offer): boolean => {
@@ -15,7 +15,6 @@ export const createFiltersPredicate = (elements: DashboardElements) => (offer: O
 export const setStatusText = (elements: DashboardElements, text: string, mock: boolean): void => {
   elements.connection.innerHTML = `<span></span>${text}`;
   elements.connection.classList.toggle('mock', mock);
-  elements.mockNotice.hidden = !mock;
 };
 export const setLoading = (elements: DashboardElements, loading: boolean): void => { elements.loadState.hidden = !loading; elements.loadState.textContent = loading ? 'Cargando ofertas…' : ''; };
 export const setError = (elements: DashboardElements, message = ''): void => { elements.errorState.hidden = !message; elements.errorMessage.textContent = message; };
@@ -81,8 +80,8 @@ export const renderOffers = (
 };
 
 const primaryActionLabel = (offer: Offer): string => {
-  if (offer.estado === 'analizada') return 'Enviar a revisión';
-  if (offer.estado === 'pendiente_revision') return 'Aprobar para aplicar';
+  if (offer.estado === 'analizada') return 'Preparar solicitud';
+  if (offer.estado === 'pendientes_respuestas') return 'Generar respuestas';
   return offer.aplicacion_sencilla ? 'Preparar solicitud' : 'Abrir oferta';
 };
 
@@ -92,7 +91,7 @@ const renderSection = (title: string, content: string, className = ''): string =
 const renderDetail = (label: string, value: string): string => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
 
 const renderStatusOptions = (offer: Offer, labels: LabelMap): string => {
-  const statuses: LabelKey[] = ['extraida', 'analizada', 'pendiente_revision', 'lista_para_aplicar', 'aplicada', 'descartada', 'error'];
+  const statuses: LabelKey[] = ['extraida', 'analizada', 'pendientes_respuestas', 'lista_para_aplicar', 'aplicada', 'descartada', 'error'];
   return statuses
     .map((status) => `<option value="${status}" ${offer.estado === status ? 'selected' : ''}>${labels[status]}</option>`)
     .join('');
@@ -126,6 +125,37 @@ const renderScores = (offer: Offer, value: (item: string | number | null | undef
     ${renderDetail('IA', value(offer.score_ia))}
   </dl>`);
 
+const answerForQuestion = (question: FormQuestion, answers: FormAnswer[]): FormAnswer | undefined =>
+  answers.find((answer) => answer.pregunta_id && answer.pregunta_id === question.pregunta_id);
+
+const renderFormQuestions = (offer: Offer): string => {
+  const questions = offer.preguntas_formulario ?? [];
+  if (questions.length === 0) {
+    return renderSection('Preguntas de la solicitud', '<p>No hay preguntas scrapeadas para esta oferta.</p>');
+  }
+
+  const responses = Array.isArray(offer.respuestas)
+    ? offer.respuestas
+    : offer.respuestas?.respuestas ?? [];
+  const questionsHtml = questions.map((question, index) => {
+    const answer = answerForQuestion(question, responses);
+    const text = question.texto ?? question.pregunta ?? `Pregunta ${index + 1}`;
+    const answerValue = answer?.valor_seleccionado ?? answer?.respuesta;
+    const response = answerValue === null || answerValue === undefined || answerValue === ''
+      ? 'Sin respuesta generada'
+      : escapeHtml(String(answerValue));
+    const metadata = [
+      question.tipo,
+      question.obligatoria ? 'Obligatoria' : undefined,
+      answer?.informacion_suficiente === false ? 'Información insuficiente' : undefined,
+    ].filter(Boolean).map((item) => `<span>${escapeHtml(String(item))}</span>`).join('');
+
+    return `<li><p>${escapeHtml(text)}</p>${metadata ? `<div class="question-meta">${metadata}</div>` : ''}<strong>Respuesta:</strong> ${response}</li>`;
+  }).join('');
+
+  return renderSection('Preguntas de la solicitud', `<ol class="form-questions">${questionsHtml}</ol>`);
+};
+
 const renderManualReview = (offer: Offer, labels: LabelMap): string => renderSection('Revisión manual', `
   <label>Estado<select id="detail-status">${renderStatusOptions(offer, labels)}</select></label>
   <label>Notas<textarea id="detail-notes" rows="4">${escapeHtml(offer.notas ?? '')}</textarea></label>
@@ -140,6 +170,7 @@ export const renderOfferDetail = (offer: Offer, labels: LabelMap): string => {
     renderSection('Por qué encaja', `<p>${value(offer.motivo_encaje || 'Sin análisis de encaje todavía.')}</p>`),
     renderOfferInformation(offer, profile, value),
     renderScores(offer, value),
+    renderFormQuestions(offer),
     renderManualReview(offer, labels),
   ].join('');
 };
