@@ -9,6 +9,7 @@ El dashboard consume una API de JobAgent ya existente; no incluye el backend ni 
 Actualmente ofrece:
 
 - Listado paginado, filtros por empresa, estado, perfil, puntuación y tipo de solicitud.
+- Página de estadísticas con embudo de estados, trabajo pendiente, encaje, Easy Apply y distribuciones.
 - Detalle de cada oferta: clasificación, puntuaciones, resumen, motivo de encaje, preguntas y respuestas generadas.
 - Edición manual del estado y de las notas.
 - Eliminación de ofertas mediante un modal de confirmación.
@@ -76,11 +77,13 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 ```text
 src/
 ├── pages/index.astro                # Estructura de la página
+├── pages/stats.astro                # Vista de métricas del dashboard
 ├── scripts/dashboard/
 │   ├── api.ts                       # Cliente HTTP de la API
 │   ├── controller.ts                # Eventos y flujo de la aplicación
 │   ├── dom.ts                       # Referencias al DOM
 │   ├── render.ts                    # Renderizado de tarjetas y detalle
+│   ├── stats.ts                     # Carga y presentación de estadísticas
 │   └── types.ts                     # Tipos del dominio
 └── styles/dashboard.css             # Estilos del panel
 ```

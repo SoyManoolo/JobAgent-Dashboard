@@ -1,0 +1,87 @@
+---
+const title = 'JobAgent · Estadísticas';
+import '../styles/dashboard.css';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Estadísticas de las ofertas de JobAgent" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">J</span><span>JobAgent</span></div>
+        <div class="topbar-actions">
+          <a class="topbar-link" href="/">Ofertas</a>
+          <div class="connection" id="stats-connection"><span></span>Cargando estadísticas...</div>
+        </div>
+      </header>
+
+      <section class="intro stats-intro">
+        <div>
+          <p class="eyebrow">SEGUIMIENTO</p>
+          <h1>Estadísticas de tus ofertas.</h1>
+          <p class="lede">Consulta el progreso de las candidaturas y prioriza los siguientes pasos.</p>
+        </div>
+      </section>
+
+      <p class="load-state" id="stats-loading">Cargando estadísticas…</p>
+      <div class="error-state" id="stats-error" hidden>
+        <span id="stats-error-message"></span>
+        <button id="stats-retry" type="button">Reintentar</button>
+      </div>
+
+      <section class="stats-page" id="stats-page" hidden>
+        <div class="stats-overview" aria-label="Resumen de ofertas">
+          <article class="stat-card"><span>Ofertas activas</span><strong id="stat-total">—</strong></article>
+          <article class="stat-card"><span>Aplicadas</span><strong id="stat-applied">—</strong></article>
+          <article class="stat-card"><span>Descartadas</span><strong id="stat-discarded">—</strong></article>
+          <article class="stat-card"><span>Tasa de aplicación</span><strong id="stat-rate">—</strong></article>
+        </div>
+
+        <div class="stats-grid">
+          <section class="stats-panel stats-panel-wide">
+            <div class="stats-panel-heading"><div><p class="eyebrow">EMBUDO</p><h2>Estado de las ofertas</h2></div></div>
+            <div class="funnel-list" id="stats-funnel"></div>
+          </section>
+
+          <section class="stats-panel">
+            <div class="stats-panel-heading"><div><p class="eyebrow">PRÓXIMOS PASOS</p><h2>Trabajo pendiente</h2></div></div>
+            <div class="pending-list" id="stats-pending"></div>
+          </section>
+
+          <section class="stats-panel">
+            <div class="stats-panel-heading"><div><p class="eyebrow">PRIORIDAD</p><h2>Ofertas destacadas</h2></div></div>
+            <div class="priority-stat"><strong id="stats-priority-total">—</strong><p>ofertas con encaje de <span id="stats-priority-score">—</span> o más</p></div>
+          </section>
+
+          <section class="stats-panel stats-panel-wide">
+            <div class="stats-panel-heading"><div><p class="eyebrow">ENCAJE</p><h2>Puntuación de las ofertas</h2></div><span id="stats-evaluated" class="panel-note"></span></div>
+            <div class="score-summary" id="stats-score-summary"></div>
+            <div class="distribution-list" id="stats-score-distribution"></div>
+          </section>
+
+          <section class="stats-panel">
+            <div class="stats-panel-heading"><div><p class="eyebrow">LINKEDIN</p><h2>Easy Apply</h2></div></div>
+            <div class="pending-list" id="stats-easy-apply"></div>
+          </section>
+
+          <section class="stats-panel">
+            <div class="stats-panel-heading"><div><p class="eyebrow">ORIGEN</p><h2>Distribución</h2></div></div>
+            <div class="distribution-groups" id="stats-distributions"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { initDashboardStats } from '../scripts/dashboard/stats';
+
+      initDashboardStats();
+    </script>
+  </body>
+</html>

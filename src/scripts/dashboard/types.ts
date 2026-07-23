@@ -60,6 +60,32 @@ export type DashboardStats = {
   total_ofertas: number;
   aplicadas: number;
   descartadas: number;
+  por_estado: Partial<Record<OfferStatus, number>>;
+  pendientes: {
+    analisis: number;
+    respuestas: number;
+    listas_para_aplicar: number;
+  };
+  ofertas_prioritarias: {
+    score_minimo: number;
+    total: number;
+  };
+  score_encaje: {
+    ofertas_evaluadas: number;
+    medio: number;
+    minimo: number;
+    maximo: number;
+    por_rango: Record<string, number>;
+  };
+  easy_apply: {
+    total: number;
+    pendientes_preguntas: number;
+    pendientes_respuestas: number;
+    listas_para_aplicar: number;
+  };
+  por_perfil: Record<string, number>;
+  por_plataforma: Record<string, number>;
+  tasa_aplicacion: number;
 };
 
 export type LabelMap = {

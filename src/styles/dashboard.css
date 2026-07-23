@@ -36,6 +36,24 @@ button {
   border-bottom: 1px solid #e3e7e3;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.topbar-link {
+  color: #405047;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.topbar-link:hover {
+  color: #223d31;
+  text-decoration: underline;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -121,6 +139,183 @@ h1 {
   color: #293a32;
   font-size: 30px;
   letter-spacing: -0.05em;
+}
+
+.stats-intro {
+  padding-bottom: 32px;
+}
+
+.stats-page {
+  display: grid;
+  gap: 20px;
+}
+
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stat-card,
+.stats-panel {
+  border: 1px solid #e0e5e0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.stat-card {
+  padding: 18px 20px;
+  color: #65746b;
+  font-size: 13px;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 7px;
+  color: #293a32;
+  font-size: 31px;
+  letter-spacing: -0.05em;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stats-panel {
+  padding: 22px;
+}
+
+.stats-panel-wide {
+  grid-column: span 2;
+}
+
+.stats-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stats-panel-heading .eyebrow {
+  margin-bottom: 6px;
+}
+
+.stats-panel h2,
+.stats-panel h3 {
+  margin: 0;
+  color: #293a32;
+}
+
+.stats-panel h2 {
+  font-size: 21px;
+  letter-spacing: -0.03em;
+}
+
+.stats-panel h3 {
+  font-size: 14px;
+}
+
+.panel-note {
+  color: #647068;
+  font-size: 13px;
+}
+
+.funnel-list,
+.pending-list,
+.distribution-list {
+  display: grid;
+  gap: 12px;
+}
+
+.metric-bar > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #526057;
+  font-size: 13px;
+}
+
+.metric-bar strong {
+  color: #293a32;
+}
+
+.metric-bar i {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1ed;
+}
+
+.metric-bar b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #6b8b78;
+}
+
+.compact-bar i {
+  height: 6px;
+}
+
+.priority-stat strong {
+  display: block;
+  color: #293a32;
+  font-size: 48px;
+  letter-spacing: -0.06em;
+}
+
+.priority-stat p {
+  margin: 2px 0 0;
+  color: #647068;
+}
+
+.priority-stat span {
+  color: #293a32;
+  font-weight: 700;
+}
+
+.score-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.score-summary div {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f4f7f4;
+}
+
+.score-summary span,
+.score-summary strong {
+  display: block;
+}
+
+.score-summary span {
+  color: #647068;
+  font-size: 12px;
+}
+
+.score-summary strong {
+  margin-top: 4px;
+  color: #293a32;
+  font-size: 22px;
+}
+
+.distribution-groups {
+  display: grid;
+  gap: 20px;
+}
+
+.distribution-groups section {
+  display: grid;
+  gap: 12px;
 }
 
 .filters {
@@ -577,6 +772,10 @@ dialog::backdrop {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .job-card {
     grid-template-columns: 1fr;
   }
@@ -597,6 +796,26 @@ dialog::backdrop {
     gap: 12px;
     align-items: start;
     flex-direction: column;
+  }
+
+  .topbar {
+    height: auto;
+    padding: 18px 0;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stats-overview,
+  .stats-grid,
+  .score-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-panel-wide {
+    grid-column: auto;
   }
 
   .filters,
