@@ -377,6 +377,48 @@ dialog::backdrop {
   background: #fff;
 }
 
+.confirm-modal {
+  max-width: min(430px, calc(100vw - 32px));
+}
+
+.confirm-content {
+  padding: 28px;
+  background: #fff;
+}
+
+.confirm-content h2,
+.confirm-content p {
+  margin: 0;
+}
+
+.confirm-content p {
+  margin-top: 10px;
+  color: #4e5a53;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirm-actions button {
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid #d7dfd7;
+  border-radius: 10px;
+  background: #fff;
+  color: #2f3c36;
+  font-weight: 700;
+}
+
+.confirm-actions .confirm-delete {
+  border-color: #a83932;
+  background: #a83932;
+  color: #fff;
+}
+
 .modal-close {
   position: absolute;
   top: 18px;

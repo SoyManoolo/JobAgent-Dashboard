@@ -50,7 +50,7 @@ export const renderOffers = (
     requiredChild<HTMLElement>(card, '.company').textContent = offer.empresa;
     requiredChild<HTMLHeadingElement>(card, 'h2').textContent = offer.titulo;
     requiredChild<HTMLElement>(card, '.location').textContent = offer.ubicacion || 'Ubicación no indicada';
-    requiredChild<HTMLElement>(card, '.summary').textContent = offer.resumen || offer.descripcion;
+    requiredChild<HTMLElement>(card, '.summary').textContent = offer.resumen ?? '';
 
     const state = requiredChild<HTMLElement>(card, '.status');
     state.textContent = labels[offer.estado as LabelKey] || offer.estado;
@@ -68,8 +68,12 @@ export const renderOffers = (
     });
 
     const apply = requiredChild<HTMLButtonElement>(card, '.apply');
-    apply.textContent = primaryActionLabel(offer);
-    apply.addEventListener('click', (event: MouseEvent) => { event.stopPropagation(); primaryAction(offer); });
+    if (hasPrimaryAction(offer)) {
+      apply.textContent = primaryActionLabel(offer);
+      apply.addEventListener('click', (event: MouseEvent) => { event.stopPropagation(); primaryAction(offer); });
+    } else {
+      apply.remove();
+    }
     requiredChild<HTMLButtonElement>(card, '.delete').addEventListener('click', (event: MouseEvent) => {
       event.stopPropagation();
       deleteOffer(offer.id);
@@ -79,10 +83,14 @@ export const renderOffers = (
   });
 };
 
+const hasPrimaryAction = (offer: Offer): boolean => !['aplicada', 'descartada', 'error'].includes(offer.estado);
+
 const primaryActionLabel = (offer: Offer): string => {
-  if (offer.estado === 'analizada') return 'Preparar solicitud';
+  if (offer.estado === 'extraida') return 'Analizar oferta';
+  if (offer.estado === 'analizada') return offer.aplicacion_sencilla ? 'Guardar preguntas' : 'Abrir oferta';
   if (offer.estado === 'pendientes_respuestas') return 'Generar respuestas';
-  return offer.aplicacion_sencilla ? 'Preparar solicitud' : 'Abrir oferta';
+  if (offer.estado === 'lista_para_aplicar') return 'Enviar solicitud';
+  return 'Abrir oferta';
 };
 
 const renderSection = (title: string, content: string, className = ''): string =>
@@ -166,7 +174,7 @@ export const renderOfferDetail = (offer: Offer, labels: LabelMap): string => {
   const profile = labels[(offer.perfil_recomendado ?? '') as LabelKey] ?? 'No definido';
   return [
     renderOfferHeader(offer, labels, value),
-    renderSection('Resumen', `<p>${value(offer.resumen || offer.descripcion)}</p>`),
+    renderSection('Resumen', `<p>${value(offer.resumen ?? '')}</p>`),
     renderSection('Por qué encaja', `<p>${value(offer.motivo_encaje || 'Sin análisis de encaje todavía.')}</p>`),
     renderOfferInformation(offer, profile, value),
     renderScores(offer, value),

@@ -36,4 +36,6 @@ export const getDashboardElements = (): DashboardElements => ({
   errorState: required<HTMLElement>('#error-state'),
   errorMessage: required<HTMLElement>('#error-message'),
   retryLoad: required<HTMLButtonElement>('#retry-load'),
+  deleteConfirmModal: required<HTMLDialogElement>('#delete-confirm-modal'),
+  confirmDelete: required<HTMLButtonElement>('#confirm-delete'),
 });

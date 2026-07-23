@@ -1,4 +1,5 @@
 import {
+  analyzeOffer,
   deleteOfferById,
   fetchDashboardStats,
   fetchOfferById,
@@ -21,6 +22,7 @@ export const initJobDashboard = (): void => {
   let activeOffers = 0;
   let currentPage = 1;
   let loading = false;
+  let offerPendingDeletion: string | undefined;
 
   const currentFilters = () => ({
     empresa: elements.empresa.value,
@@ -57,7 +59,7 @@ export const initJobDashboard = (): void => {
       if (!updated) { alert('No se pudieron guardar los cambios.'); save.disabled = false; return; }
       offers = offers.map((item) => item.id === offer.id ? updated : item);
       showOfferDetail(updated);
-      renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
+      renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
     });
   };
 
@@ -75,7 +77,9 @@ export const initJobDashboard = (): void => {
     }
 
     try {
-      if (offer.estado === 'analizada') {
+      if (offer.estado === 'extraida') {
+        await analyzeOffer(offer.id);
+      } else if (offer.estado === 'analizada') {
         await processEasyApply(offer.id);
       } else if (offer.estado === 'pendientes_respuestas') {
         await generateOfferAnswers(offer.id);
@@ -84,15 +88,13 @@ export const initJobDashboard = (): void => {
         return;
       }
     } catch {
-      alert('No se ha podido preparar la solicitud en la API.');
+      alert('No se ha podido completar la acción en la API.');
       return;
     }
     void loadOffers();
   };
 
   const deleteOffer = async (id: string): Promise<void> => {
-    if (!confirm('¿Quieres eliminar esta oferta?')) return;
-
     try {
       await deleteOfferById(id);
     } catch {
@@ -103,6 +105,11 @@ export const initJobDashboard = (): void => {
     offers = offers.filter((offer) => offer.id !== id);
     totalOffers = Math.max(0, totalOffers - 1);
     void loadOffers();
+  };
+
+  const requestDeleteOffer = (id: string): void => {
+    offerPendingDeletion = id;
+    elements.deleteConfirmModal.showModal();
   };
 
   const loadOffers = async (): Promise<void> => {
@@ -127,7 +134,7 @@ export const initJobDashboard = (): void => {
       loading = false;
       setLoading(elements, false);
     }
-    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, deleteOffer, primaryAction);
+    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
     if (elements.errorState.hidden) elements.total.textContent = String(activeOffers);
   };
 
@@ -151,6 +158,18 @@ export const initJobDashboard = (): void => {
   elements.modalClose.addEventListener('click', () => elements.modal.close());
   elements.modal.addEventListener('click', (event: MouseEvent) => {
     if (event.target === elements.modal) elements.modal.close();
+  });
+  elements.deleteConfirmModal.addEventListener('click', (event: MouseEvent) => {
+    if (event.target === elements.deleteConfirmModal) elements.deleteConfirmModal.close();
+  });
+  elements.deleteConfirmModal.addEventListener('close', () => {
+    offerPendingDeletion = undefined;
+  });
+  elements.confirmDelete.addEventListener('click', () => {
+    const id = offerPendingDeletion;
+    if (!id) return;
+    elements.deleteConfirmModal.close();
+    void deleteOffer(id);
   });
   elements.empresa.addEventListener('input', loadOffersDebounced);
   document.querySelectorAll<HTMLSelectElement>('.filters select').forEach((control) => {

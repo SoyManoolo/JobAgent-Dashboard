@@ -55,6 +55,17 @@ import '../styles/dashboard.css';
       </article>
     </dialog>
 
+    <dialog class="confirm-modal" id="delete-confirm-modal" aria-labelledby="delete-confirm-title">
+      <form class="confirm-content" method="dialog">
+        <h2 id="delete-confirm-title">¿Eliminar oferta?</h2>
+        <p>Esta acción eliminará la oferta.</p>
+        <div class="confirm-actions">
+          <button type="submit" value="cancel">Cancelar</button>
+          <button class="confirm-delete" id="confirm-delete" type="button">Eliminar oferta</button>
+        </div>
+      </form>
+    </dialog>
+
     <template id="job-template">
       <article class="job-card" tabindex="0">
         <div class="job-main">

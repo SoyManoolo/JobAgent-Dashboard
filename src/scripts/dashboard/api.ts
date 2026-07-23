@@ -64,9 +64,14 @@ export const updateOfferNotes = async (id: string, notas: string | null): Promis
   return response.json() as Promise<Offer>;
 };
 
+export const analyzeOffer = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/agent/ofertas/procesar/${id}`, { method: 'POST' });
+  if (!response.ok) throw new Error('No se pudo analizar la oferta');
+};
+
 export const processEasyApply = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/scraper/linkedin/easyapply/${id}`, { method: 'POST' });
-  if (!response.ok) throw new Error('No se pudo preparar la solicitud sencilla');
+  const response = await fetch(`${API_BASE_URL}/scraper/linkedin/easyapply/procesar/${id}`, { method: 'POST' });
+  if (!response.ok) throw new Error('No se pudieron guardar las preguntas de la solicitud');
 };
 
 export const generateOfferAnswers = async (id: string): Promise<void> => {
