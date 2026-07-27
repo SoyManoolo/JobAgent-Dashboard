@@ -1,5 +1,5 @@
 import { requiredChild } from './dom';
-import type { DashboardElements, FormAnswer, FormQuestion, LabelMap, LabelKey, Offer } from './types';
+import type { DashboardElements, FormAnswer, FormOption, FormQuestion, LabelMap, LabelKey, Offer } from './types';
 import { escapeHtml, initialsFor, tag } from './format';
 
 export const createFiltersPredicate = (elements: DashboardElements) => (offer: Offer): boolean => {
@@ -136,6 +136,39 @@ const renderScores = (offer: Offer, value: (item: string | number | null | undef
 const answerForQuestion = (question: FormQuestion, answers: FormAnswer[]): FormAnswer | undefined =>
   answers.find((answer) => answer.pregunta_id && answer.pregunta_id === question.pregunta_id);
 
+const canEditAnswers = (offer: Offer): boolean => ['pendientes_respuestas', 'lista_para_aplicar'].includes(offer.estado);
+
+const optionValueAndLabel = (option: FormOption | string): { value: string; label: string } =>
+  typeof option === 'string' ? { value: option, label: option } : { value: option.valor, label: option.texto };
+
+const answerInput = (question: FormQuestion, answer: FormAnswer | undefined): string => {
+  const questionId = question.pregunta_id;
+  if (!questionId) return '<p class="answer-value">No se puede editar esta pregunta porque no tiene identificador.</p>';
+
+  const id = escapeHtml(questionId);
+  const options = question.opciones ?? [];
+  const selectedValue = String(answer?.valor_seleccionado ?? '');
+  if (options.length > 0 && question.tipo === 'radio') {
+    return `<fieldset class="answer-options"><legend>Respuesta</legend>${options.map((option) => {
+      const { value, label } = optionValueAndLabel(option);
+      return `<label><input class="question-answer" data-answer-kind="option" data-question-id="${id}" type="radio" name="question-${id}" value="${escapeHtml(value)}" ${value === selectedValue ? 'checked' : ''} />${escapeHtml(label)}</label>`;
+    }).join('')}</fieldset>`;
+  }
+
+  if (options.length > 0) {
+    return `<label class="answer-field">Respuesta<select class="question-answer" data-answer-kind="option" data-question-id="${id}"><option value="">Sin responder</option>${options.map((option) => {
+      const { value, label } = optionValueAndLabel(option);
+      return `<option value="${escapeHtml(value)}" ${value === selectedValue ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+    }).join('')}</select></label>`;
+  }
+
+  const value = escapeHtml(String(answer?.respuesta ?? ''));
+  if (question.tipo === 'number') {
+    return `<label class="answer-field">Respuesta<input class="question-answer" data-answer-kind="response" data-question-id="${id}" type="number" value="${value}" /></label>`;
+  }
+  return `<label class="answer-field">Respuesta<textarea class="question-answer" data-answer-kind="response" data-question-id="${id}" rows="3">${value}</textarea></label>`;
+};
+
 const renderFormQuestions = (offer: Offer): string => {
   const questions = offer.preguntas_formulario ?? [];
   if (questions.length === 0) {
@@ -158,10 +191,16 @@ const renderFormQuestions = (offer: Offer): string => {
       answer?.informacion_suficiente === false ? 'Información insuficiente' : undefined,
     ].filter(Boolean).map((item) => `<span>${escapeHtml(String(item))}</span>`).join('');
 
-    return `<li><p>${escapeHtml(text)}</p>${metadata ? `<div class="question-meta">${metadata}</div>` : ''}<strong>Respuesta:</strong> ${response}</li>`;
+    const content = canEditAnswers(offer)
+      ? answerInput(question, answer)
+      : `<strong>Respuesta:</strong> ${response}`;
+    return `<li><p>${escapeHtml(text)}</p>${metadata ? `<div class="question-meta">${metadata}</div>` : ''}${content}</li>`;
   }).join('');
 
-  return renderSection('Preguntas de la solicitud', `<ol class="form-questions">${questionsHtml}</ol>`);
+  const confirmation = canEditAnswers(offer)
+    ? '<button class="confirm-answers" id="confirm-answers" type="button">Confirmar respuestas</button>'
+    : '';
+  return renderSection('Preguntas de la solicitud', `<ol class="form-questions">${questionsHtml}</ol>${confirmation}`, 'form-questions-section');
 };
 
 const renderManualReview = (offer: Offer, labels: LabelMap): string => renderSection('Revisión manual', `

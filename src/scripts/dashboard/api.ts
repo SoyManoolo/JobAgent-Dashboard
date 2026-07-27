@@ -1,4 +1,4 @@
-import type { DashboardStats, Offer, OffersResponse, OfferUpdate } from './types';
+import type { DashboardStats, FormAnswerUpdate, FormAnswerUpdateResponse, Offer, OffersResponse, OfferUpdate } from './types';
 
 export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1';
 export const PAGE_LIMIT = 10;
@@ -79,4 +79,23 @@ export const generateOfferAnswers = async (id: string): Promise<void> => {
   if (!response.ok) throw new Error('No se pudieron generar las respuestas');
   const data = await response.json() as { error?: string };
   if (data.error) throw new Error(data.error);
+};
+
+export const updateOfferAnswer = async (
+  offerId: string,
+  questionId: string,
+  answer: FormAnswerUpdate,
+): Promise<FormAnswerUpdateResponse> => {
+  const response = await fetch(`${API_BASE_URL}/ofertas/${offerId}/respuestas/${questionId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(answer),
+  });
+  if (!response.ok) throw new Error('No se pudo guardar la respuesta');
+  return response.json() as Promise<FormAnswerUpdateResponse>;
+};
+
+export const confirmOfferAnswers = async (offerId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/ofertas/${offerId}/respuestas/confirmar`, { method: 'POST' });
+  if (!response.ok) throw new Error('No se pudieron confirmar las respuestas');
 };

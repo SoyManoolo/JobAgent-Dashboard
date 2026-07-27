@@ -1,5 +1,6 @@
 import {
   analyzeOffer,
+  confirmOfferAnswers,
   deleteOfferById,
   fetchDashboardStats,
   fetchOfferById,
@@ -7,6 +8,7 @@ import {
   generateOfferAnswers,
   PAGE_LIMIT,
   processEasyApply,
+  updateOfferAnswer,
   updateOfferById,
   updateOfferNotes,
 } from './api';
@@ -37,6 +39,53 @@ export const initJobDashboard = (): void => {
     const save = elements.modalBody.querySelector<HTMLButtonElement>('#save-detail');
     const status = elements.modalBody.querySelector<HTMLSelectElement>('#detail-status');
     const notes = elements.modalBody.querySelector<HTMLTextAreaElement>('#detail-notes');
+    const confirmAnswers = elements.modalBody.querySelector<HTMLButtonElement>('#confirm-answers');
+    const answerFields = Array.from(elements.modalBody.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('.question-answer'));
+    let answerSaveQueue = Promise.resolve(true);
+
+    const saveAnswer = async (field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): Promise<boolean> => {
+      if (field instanceof HTMLInputElement && field.type === 'radio' && !field.checked) return true;
+      const questionId = field.dataset.questionId;
+      const kind = field.dataset.answerKind;
+      if (!questionId || !kind) return false;
+
+      field.disabled = true;
+      try {
+        const value = field.value || null;
+        await updateOfferAnswer(offer.id, questionId, kind === 'option' ? { valor_seleccionado: value } : { respuesta: value });
+        field.closest('li')?.classList.add('answer-saved');
+        return true;
+      } catch {
+        alert('No se pudo guardar la respuesta.');
+        return false;
+      } finally {
+        field.disabled = false;
+      }
+    };
+
+    answerFields.forEach((field) => {
+      field.addEventListener('change', () => {
+        answerSaveQueue = answerSaveQueue.then(() => saveAnswer(field));
+      });
+    });
+    confirmAnswers?.addEventListener('click', async () => {
+      confirmAnswers.disabled = true;
+      if (!await answerSaveQueue) {
+        alert('Corrige o vuelve a guardar las respuestas antes de confirmarlas.');
+        confirmAnswers.disabled = false;
+        return;
+      }
+      try {
+        await confirmOfferAnswers(offer.id);
+        const updated = await fetchOfferById(offer.id);
+        offers = offers.map((item) => item.id === offer.id ? updated : item);
+        showOfferDetail(updated);
+        renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
+      } catch {
+        alert('No se pudieron confirmar las respuestas. Revisa las preguntas obligatorias.');
+        confirmAnswers.disabled = false;
+      }
+    });
     save?.addEventListener('click', async () => {
       if (!status || !notes) return;
       const nextStatus = status.value as Offer['estado'];

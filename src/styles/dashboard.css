@@ -747,9 +747,70 @@ dialog::backdrop {
   color: #344239;
 }
 
+.form-questions li.answer-saved {
+  box-shadow: inset 3px 0 #6b8b78;
+}
+
 .form-questions p {
   margin: 0 0 8px;
   font-weight: 700;
+}
+
+.answer-field,
+.answer-options {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  color: #526057;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.answer-field input,
+.answer-field select,
+.answer-field textarea {
+  width: 100%;
+  border: 1px solid #d7dfd7;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #2f3c36;
+  font: inherit;
+  font-weight: 400;
+}
+
+.answer-field textarea {
+  resize: vertical;
+}
+
+.answer-options legend {
+  margin-bottom: 7px;
+}
+
+.answer-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+
+.confirm-answers {
+  width: fit-content;
+  height: 40px;
+  margin-top: 16px;
+  padding: 0 14px;
+  border: 1px solid #334b41;
+  border-radius: 10px;
+  background: #334b41;
+  color: #fff;
+  font-weight: 700;
+}
+
+.confirm-answers:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .question-meta {

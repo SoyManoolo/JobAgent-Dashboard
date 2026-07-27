@@ -9,7 +9,12 @@ export type FormQuestion = {
   pregunta?: string;
   tipo?: string;
   obligatoria?: boolean;
-  opciones?: string[];
+  opciones?: FormOption[] | string[];
+};
+
+export type FormOption = {
+  valor: string;
+  texto: string;
 };
 
 export type FormAnswer = {
@@ -17,6 +22,17 @@ export type FormAnswer = {
   respuesta?: string | number | boolean | null;
   valor_seleccionado?: string | null;
   informacion_suficiente?: boolean;
+};
+
+export type FormAnswerUpdate = {
+  respuesta?: string | null;
+  valor_seleccionado?: string | null;
+};
+
+export type FormAnswerUpdateResponse = {
+  respuesta: FormAnswer;
+  todas_obligatorias_resueltas: boolean;
+  estado: OfferStatus;
 };
 
 export type Offer = {

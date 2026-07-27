@@ -11,6 +11,7 @@ Actualmente ofrece:
 - Listado paginado, filtros por empresa, estado, perfil, puntuación y tipo de solicitud.
 - Página de estadísticas con embudo de estados, trabajo pendiente, encaje, Easy Apply y distribuciones.
 - Detalle de cada oferta: clasificación, puntuaciones, resumen, motivo de encaje, preguntas y respuestas generadas.
+- Edición individual de respuestas Easy Apply y confirmación de preguntas obligatorias antes de aplicar.
 - Edición manual del estado y de las notas.
 - Eliminación de ofertas mediante un modal de confirmación.
 - Flujo asistido para ofertas Easy Apply.
@@ -71,6 +72,8 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 | `POST` | `/agent/ofertas/procesar/{id}` | Análisis y clasificación de una oferta extraída. |
 | `POST` | `/scraper/linkedin/easyapply/procesar/{id}` | Extracción y guardado de preguntas Easy Apply. |
 | `POST` | `/agent/ofertas/{id}/responder` | Generación de respuestas para una oferta. |
+| `PATCH` | `/ofertas/{oferta_id}/respuestas/{pregunta_id}` | Guardado de una respuesta revisada manualmente. |
+| `POST` | `/ofertas/{oferta_id}/respuestas/confirmar` | Confirmación de respuestas y avance a `lista_para_aplicar`. |
 
 ## Estructura
 
