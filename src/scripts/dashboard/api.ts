@@ -74,6 +74,11 @@ export const processEasyApply = async (id: string): Promise<void> => {
   if (!response.ok) throw new Error('No se pudieron guardar las preguntas de la solicitud');
 };
 
+export const submitEasyApply = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/scraper/linkedin/easyapply/aplicar/${id}`, { method: 'POST' });
+  if (!response.ok) throw new Error('No se pudo enviar la solicitud');
+};
+
 export const generateOfferAnswers = async (id: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/agent/ofertas/responder/${id}`, { method: 'POST' });
   if (!response.ok) throw new Error('No se pudieron generar las respuestas');

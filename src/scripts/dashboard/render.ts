@@ -129,7 +129,6 @@ const renderOfferInformation = (offer: Offer, profile: string, value: (item: str
 const renderScores = (offer: Offer, value: (item: string | number | null | undefined) => string): string =>
   renderSection('Scores por perfil', `<dl>
     ${renderDetail('Backend', value(offer.score_backend))}
-    ${renderDetail('Full stack', value(offer.score_fullstack))}
     ${renderDetail('IA', value(offer.score_ia))}
   </dl>`);
 

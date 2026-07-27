@@ -8,6 +8,7 @@ import {
   generateOfferAnswers,
   PAGE_LIMIT,
   processEasyApply,
+  submitEasyApply,
   updateOfferAnswer,
   updateOfferById,
   updateOfferNotes,
@@ -126,7 +127,7 @@ export const initJobDashboard = (): void => {
   };
 
   const primaryAction = async (offer: Offer): Promise<void> => {
-    if (!offer.aplicacion_sencilla || offer.estado === 'lista_para_aplicar') {
+    if (!offer.aplicacion_sencilla) {
       window.open(offer.url, '_blank', 'noopener,noreferrer');
       return;
     }
@@ -138,6 +139,8 @@ export const initJobDashboard = (): void => {
         await processEasyApply(offer.id);
       } else if (offer.estado === 'pendientes_respuestas') {
         await generateOfferAnswers(offer.id);
+      } else if (offer.estado === 'lista_para_aplicar') {
+        await submitEasyApply(offer.id);
       } else {
         window.open(offer.url, '_blank', 'noopener,noreferrer');
         return;

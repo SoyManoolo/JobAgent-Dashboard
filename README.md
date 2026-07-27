@@ -25,10 +25,10 @@ No hay datos simulados como alternativa: la API debe estar disponible para carga
 | `extraida` | Analizar oferta | La API clasifica la oferta y la deja en `analizada`, `descartada` o `error`. |
 | `analizada` (Easy Apply) | Guardar preguntas | Se extraen y guardan las preguntas; la oferta pasa a `pendientes_respuestas` o `lista_para_aplicar`. |
 | `pendientes_respuestas` | Generar respuestas | La API genera respuestas para las preguntas guardadas. |
-| `lista_para_aplicar` | Enviar solicitud | Abre la URL de la oferta para completar el envío en LinkedIn. |
+| `lista_para_aplicar` | Enviar solicitud | Envía la candidatura mediante el flujo Easy Apply. |
 | `aplicada`, `descartada`, `error` | — | No se muestra una acción principal. |
 
-En ofertas que no usan Easy Apply, después del análisis se muestra **Abrir oferta**, que abre la URL original en una pestaña nueva. El envío automatizado de la solicitud no está implementado en el frontend: el último paso abre LinkedIn para que la persona usuaria lo complete.
+En ofertas que no usan Easy Apply, después del análisis se muestra **Abrir oferta**, que abre la URL original en una pestaña nueva.
 
 ## Requisitos
 
@@ -71,6 +71,7 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 | `GET` | `/dashboard/stats` | Métricas del panel. |
 | `POST` | `/agent/ofertas/procesar/{id}` | Análisis y clasificación de una oferta extraída. |
 | `POST` | `/scraper/linkedin/easyapply/procesar/{id}` | Extracción y guardado de preguntas Easy Apply. |
+| `POST` | `/scraper/linkedin/easyapply/aplicar/{id}` | Envío de una solicitud Easy Apply lista para aplicar. |
 | `POST` | `/agent/ofertas/{id}/responder` | Generación de respuestas para una oferta. |
 | `PATCH` | `/ofertas/{oferta_id}/respuestas/{pregunta_id}` | Guardado de una respuesta revisada manualmente. |
 | `POST` | `/ofertas/{oferta_id}/respuestas/confirmar` | Confirmación de respuestas y avance a `lista_para_aplicar`. |
