@@ -53,6 +53,7 @@ export type Offer = {
   aplicacion_sencilla: boolean;
   preguntas_formulario: FormQuestion[] | null;
   respuestas?: FormAnswer[] | { respuestas?: FormAnswer[] } | null;
+  respuestas_formulario?: FormAnswer[] | null;
   perfil_recomendado: RecommendedProfile | null;
   idioma_oferta: string | null;
   seniority: Seniority | null;

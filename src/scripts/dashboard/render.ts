@@ -175,9 +175,8 @@ const renderFormQuestions = (offer: Offer): string => {
     return renderSection('Preguntas de la solicitud', '<p>No hay preguntas scrapeadas para esta oferta.</p>');
   }
 
-  const responses = Array.isArray(offer.respuestas)
-    ? offer.respuestas
-    : offer.respuestas?.respuestas ?? [];
+  const responses = offer.respuestas_formulario
+    ?? (Array.isArray(offer.respuestas) ? offer.respuestas : offer.respuestas?.respuestas ?? []);
   const questionsHtml = questions.map((question, index) => {
     const answer = answerForQuestion(question, responses);
     const text = question.texto ?? question.pregunta ?? `Pregunta ${index + 1}`;
