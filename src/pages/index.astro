@@ -69,6 +69,17 @@ import '../styles/dashboard.css';
       </form>
     </dialog>
 
+    <dialog class="confirm-modal" id="discard-confirm-modal" aria-labelledby="discard-confirm-title">
+      <form class="confirm-content" method="dialog">
+        <h2 id="discard-confirm-title">¿Descartar oferta?</h2>
+        <p>La oferta se marcará como descartada y dejará de tener una acción principal.</p>
+        <div class="confirm-actions">
+          <button type="submit" value="cancel">Cancelar</button>
+          <button class="confirm-delete" id="confirm-discard" type="button">Descartar oferta</button>
+        </div>
+      </form>
+    </dialog>
+
     <template id="job-template">
       <article class="job-card" tabindex="0">
         <div class="job-main">

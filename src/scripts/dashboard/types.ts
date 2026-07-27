@@ -146,4 +146,6 @@ export type DashboardElements = {
   retryLoad: HTMLButtonElement;
   deleteConfirmModal: HTMLDialogElement;
   confirmDelete: HTMLButtonElement;
+  discardConfirmModal: HTMLDialogElement;
+  confirmDiscard: HTMLButtonElement;
 };

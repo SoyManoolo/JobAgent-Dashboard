@@ -38,4 +38,6 @@ export const getDashboardElements = (): DashboardElements => ({
   retryLoad: required<HTMLButtonElement>('#retry-load'),
   deleteConfirmModal: required<HTMLDialogElement>('#delete-confirm-modal'),
   confirmDelete: required<HTMLButtonElement>('#confirm-delete'),
+  discardConfirmModal: required<HTMLDialogElement>('#discard-confirm-modal'),
+  confirmDiscard: required<HTMLButtonElement>('#confirm-discard'),
 });

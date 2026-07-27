@@ -25,6 +25,7 @@ export const initJobDashboard = (): void => {
   let currentPage = 1;
   let loading = false;
   let offerPendingDeletion: string | undefined;
+  let discardConfirmationResolver: ((confirmed: boolean) => void) | undefined;
 
   const currentFilters = () => ({
     empresa: elements.empresa.value,
@@ -91,7 +92,12 @@ export const initJobDashboard = (): void => {
       const nextStatus = status.value as Offer['estado'];
       if (
         nextStatus !== offer.estado
-        && ['aplicada', 'descartada'].includes(nextStatus)
+        && nextStatus === 'descartada'
+        && !await requestDiscardConfirmation()
+      ) return;
+      if (
+        nextStatus !== offer.estado
+        && nextStatus === 'aplicada'
         && !confirm(`¿Confirmas que quieres marcar esta oferta como ${labels[nextStatus].toLowerCase()}?`)
       ) return;
 
@@ -161,6 +167,11 @@ export const initJobDashboard = (): void => {
     elements.deleteConfirmModal.showModal();
   };
 
+  const requestDiscardConfirmation = (): Promise<boolean> => new Promise((resolve) => {
+    discardConfirmationResolver = resolve;
+    elements.discardConfirmModal.showModal();
+  });
+
   const loadOffers = async (): Promise<void> => {
     if (loading) return;
     loading = true;
@@ -219,6 +230,20 @@ export const initJobDashboard = (): void => {
     if (!id) return;
     elements.deleteConfirmModal.close();
     void deleteOffer(id);
+  });
+  elements.discardConfirmModal.addEventListener('click', (event: MouseEvent) => {
+    if (event.target === elements.discardConfirmModal) elements.discardConfirmModal.close();
+  });
+  elements.discardConfirmModal.addEventListener('close', () => {
+    const resolve = discardConfirmationResolver;
+    discardConfirmationResolver = undefined;
+    resolve?.(false);
+  });
+  elements.confirmDiscard.addEventListener('click', () => {
+    const resolve = discardConfirmationResolver;
+    discardConfirmationResolver = undefined;
+    elements.discardConfirmModal.close();
+    resolve?.(true);
   });
   elements.empresa.addEventListener('input', loadOffersDebounced);
   document.querySelectorAll<HTMLSelectElement>('.filters select').forEach((control) => {
