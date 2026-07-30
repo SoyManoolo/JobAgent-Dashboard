@@ -10,6 +10,11 @@ import '../styles/dashboard.css';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Estadísticas de las ofertas de JobAgent" />
     <title>{title}</title>
+    <script is:inline>
+      const savedTheme = localStorage.getItem('jobagent-theme');
+      const theme = savedTheme ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+    </script>
   </head>
   <body>
     <main class="dashboard">
@@ -17,6 +22,7 @@ import '../styles/dashboard.css';
         <div class="brand"><span class="brand-mark">J</span><span>JobAgent</span></div>
         <div class="topbar-actions">
           <a class="topbar-link" href="/">Ofertas</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar tema"><span aria-hidden="true">◐</span><span class="theme-toggle-label"></span></button>
           <div class="connection" id="stats-connection"><span></span>Cargando estadísticas...</div>
         </div>
       </header>
@@ -80,7 +86,9 @@ import '../styles/dashboard.css';
 
     <script type="module">
       import { initDashboardStats } from '../scripts/dashboard/stats';
+      import { initThemeToggle } from '../scripts/theme';
 
+      initThemeToggle();
       initDashboardStats();
     </script>
   </body>
