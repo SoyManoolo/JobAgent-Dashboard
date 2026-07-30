@@ -203,6 +203,10 @@ const renderFormQuestions = (offer: Offer): string => {
 
 const renderManualReview = (offer: Offer, labels: LabelMap): string => renderSection('Revisión manual', `
   <label>Estado<select id="detail-status">${renderStatusOptions(offer, labels)}</select></label>
+  <label>Tipo de solicitud<select id="detail-easy-apply">
+    <option value="false" ${offer.aplicacion_sencilla ? '' : 'selected'}>Aplicación externa</option>
+    <option value="true" ${offer.aplicacion_sencilla ? 'selected' : ''}>Easy Apply</option>
+  </select></label>
   <label>Notas<textarea id="detail-notes" rows="4">${escapeHtml(offer.notas ?? '')}</textarea></label>
   <button id="save-detail" type="button">Guardar cambios</button>`, 'review');
 

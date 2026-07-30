@@ -1,7 +1,11 @@
 export type OfferStatus = 'extraida' | 'analizada' | 'pendientes_respuestas' | 'lista_para_aplicar' | 'aplicada' | 'descartada' | 'error';
 export type RecommendedProfile = 'backend' | 'ia' | 'desconocido';
 export type Seniority = 'junior' | 'mid' | 'senior' | 'desconocido';
-export type OfferUpdate = { estado?: OfferStatus; notas?: string | null };
+export type OfferUpdate = {
+  estado?: OfferStatus;
+  notas?: string | null;
+  aplicacion_sencilla?: boolean;
+};
 
 export type FormQuestion = {
   pregunta_id?: string;

@@ -40,6 +40,7 @@ export const initJobDashboard = (): void => {
     elements.modalBody.innerHTML = renderOfferDetail(offer, labels);
     const save = elements.modalBody.querySelector<HTMLButtonElement>('#save-detail');
     const status = elements.modalBody.querySelector<HTMLSelectElement>('#detail-status');
+    const easyApply = elements.modalBody.querySelector<HTMLSelectElement>('#detail-easy-apply');
     const notes = elements.modalBody.querySelector<HTMLTextAreaElement>('#detail-notes');
     const confirmAnswers = elements.modalBody.querySelector<HTMLButtonElement>('#confirm-answers');
     const answerFields = Array.from(elements.modalBody.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('.question-answer'));
@@ -89,8 +90,9 @@ export const initJobDashboard = (): void => {
       }
     });
     save?.addEventListener('click', async () => {
-      if (!status || !notes) return;
+      if (!status || !easyApply || !notes) return;
       const nextStatus = status.value as Offer['estado'];
+      const nextEasyApply = easyApply.value === 'true';
       if (
         nextStatus !== offer.estado
         && nextStatus === 'descartada'
@@ -105,9 +107,13 @@ export const initJobDashboard = (): void => {
       save.disabled = true;
       const notesValue = notes.value || null;
       const updated = await (async () => {
-        const statusUpdated = nextStatus === offer.estado
+        const changes = {
+          ...(nextStatus !== offer.estado ? { estado: nextStatus } : {}),
+          ...(nextEasyApply !== offer.aplicacion_sencilla ? { aplicacion_sencilla: nextEasyApply } : {}),
+        };
+        const statusUpdated = Object.keys(changes).length === 0
           ? offer
-          : await updateOfferById(offer.id, { estado: nextStatus });
+          : await updateOfferById(offer.id, changes);
         return notesValue === offer.notas
           ? statusUpdated
           : updateOfferNotes(offer.id, notesValue);
@@ -127,14 +133,12 @@ export const initJobDashboard = (): void => {
   };
 
   const primaryAction = async (offer: Offer): Promise<void> => {
-    if (!offer.aplicacion_sencilla) {
-      window.open(offer.url, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
     try {
       if (offer.estado === 'extraida') {
         await analyzeOffer(offer.id);
+      } else if (!offer.aplicacion_sencilla) {
+        window.open(offer.url, '_blank', 'noopener,noreferrer');
+        return;
       } else if (offer.estado === 'analizada') {
         await processEasyApply(offer.id);
       } else if (offer.estado === 'pendientes_respuestas') {
