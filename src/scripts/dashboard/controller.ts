@@ -2,7 +2,6 @@ import {
   analyzeOffer,
   confirmOfferAnswers,
   deleteOfferById,
-  fetchDashboardStats,
   fetchOfferById,
   fetchOffers,
   generateOfferAnswers,
@@ -18,7 +17,11 @@ import { renderOfferDetail, renderOffers, setError, setLoading, setStatusText } 
 import { labels } from './shared';
 import type { Offer } from './types';
 
-export const initJobDashboard = (): void => {
+type DashboardView = 'active' | 'applied';
+
+const API_PAGE_LIMIT = 100;
+
+export const initJobDashboard = (view: DashboardView = 'active'): void => {
   const elements = getDashboardElements();
   let offers: Offer[] = [];
   let totalOffers = 0;
@@ -30,11 +33,28 @@ export const initJobDashboard = (): void => {
 
   const currentFilters = () => ({
     empresa: elements.empresa.value,
-    estado: elements.estado.value,
+    estado: view === 'applied' ? 'aplicada' : elements.estado.value,
     perfil: elements.perfil.value,
     score: elements.score.value,
     sencilla: elements.sencilla.value,
   });
+
+  const fetchAllMatchingOffers = async (): Promise<Offer[]> => {
+    const firstPage = await fetchOffers(currentFilters(), 1, API_PAGE_LIMIT);
+    const totalPages = Math.ceil(firstPage.total / API_PAGE_LIMIT);
+    if (totalPages <= 1) return firstPage.resultados ?? [];
+
+    const remainingPages = await Promise.all(
+      Array.from(
+        { length: totalPages - 1 },
+        (_, index) => fetchOffers(currentFilters(), index + 2, API_PAGE_LIMIT),
+      ),
+    );
+    return [
+      ...(firstPage.resultados ?? []),
+      ...remainingPages.flatMap((page) => page.resultados ?? []),
+    ];
+  };
 
   const showOfferDetail = (offer: Offer): void => {
     elements.modalBody.innerHTML = renderOfferDetail(offer, labels);
@@ -185,11 +205,16 @@ export const initJobDashboard = (): void => {
     setLoading(elements, true);
     setError(elements);
     try {
-      const data = await fetchOffers(currentFilters(), currentPage, PAGE_LIMIT);
-      const stats = await fetchDashboardStats().catch(() => ({ total_ofertas: data.total, aplicadas: 0, descartadas: 0 }));
-      offers = data.resultados ?? [];
-      totalOffers = data.total;
-      activeOffers = stats.total_ofertas;
+      const matchingOffers = await fetchAllMatchingOffers();
+      const visibleOffers = view === 'applied'
+        ? matchingOffers.filter((offer) => offer.estado === 'aplicada')
+        : matchingOffers.filter((offer) => offer.estado !== 'aplicada');
+      totalOffers = visibleOffers.length;
+      const totalPages = Math.max(1, Math.ceil(totalOffers / PAGE_LIMIT));
+      currentPage = Math.min(currentPage, totalPages);
+      const firstOffer = (currentPage - 1) * PAGE_LIMIT;
+      offers = visibleOffers.slice(firstOffer, firstOffer + PAGE_LIMIT);
+      activeOffers = totalOffers;
       setStatusText(elements, 'API conectada', false);
     } catch {
       offers = [];

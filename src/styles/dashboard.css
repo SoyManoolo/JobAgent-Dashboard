@@ -39,6 +39,8 @@ button {
 .topbar-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 18px;
 }
 
@@ -340,6 +342,10 @@ h1 {
   border: 1px solid #e0e5e0;
   border-radius: 14px;
   background: white;
+}
+
+.filters-applied {
+  grid-template-columns: 1.5fr repeat(3, 1fr) auto;
 }
 
 .filters label {

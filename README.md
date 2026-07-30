@@ -9,6 +9,7 @@ El dashboard consume una API de JobAgent ya existente; no incluye el backend ni 
 Actualmente ofrece:
 
 - Listado paginado, filtros por empresa, estado, perfil, puntuación y tipo de solicitud.
+- Separación entre ofertas activas y un historial independiente de candidaturas aplicadas.
 - Página de estadísticas con embudo de estados, trabajo pendiente, encaje, Easy Apply y distribuciones.
 - Detalle de cada oferta: clasificación, puntuaciones, resumen, motivo de encaje, preguntas y respuestas generadas.
 - Edición individual de respuestas Easy Apply y confirmación de preguntas obligatorias antes de aplicar.
@@ -80,6 +81,7 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 
 ```text
 src/
+├── pages/aplicadas.astro            # Historial de ofertas aplicadas
 ├── pages/index.astro                # Estructura de la página
 ├── pages/stats.astro                # Vista de métricas del dashboard
 ├── scripts/dashboard/
