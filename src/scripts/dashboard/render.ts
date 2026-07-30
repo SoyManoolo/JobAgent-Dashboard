@@ -206,7 +206,7 @@ const renderFormQuestions = (offer: Offer): string => {
     return `<li><p>${escapeHtml(text)}</p>${metadata ? `<div class="question-meta">${metadata}</div>` : ''}${content}</li>`;
   }).join('');
 
-  const confirmation = canEditAnswers(offer)
+  const confirmation = offer.estado === 'pendientes_respuestas'
     ? '<button class="confirm-answers" id="confirm-answers" type="button">Confirmar respuestas</button>'
     : '';
   return renderSection('Preguntas de la solicitud', `<ol class="form-questions">${questionsHtml}</ol>${confirmation}`, 'form-questions-section');
