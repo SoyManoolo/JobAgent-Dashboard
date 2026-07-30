@@ -409,6 +409,10 @@ h1 {
   font-size: 14px;
 }
 
+.error-state[hidden] {
+  display: none;
+}
+
 .error-state button {
   flex: 0 0 auto;
   height: 36px;
