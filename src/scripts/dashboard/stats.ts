@@ -42,6 +42,8 @@ export const initDashboardStats = (): void => {
     required<HTMLElement>('#stat-applied').textContent = formatNumber(stats.aplicadas);
     required<HTMLElement>('#stat-discarded').textContent = formatNumber(stats.descartadas);
     required<HTMLElement>('#stat-rate').textContent = `${formatNumber(stats.tasa_aplicacion)} %`;
+    required<HTMLElement>('#stat-deleted').textContent = formatNumber(stats.ofertas_eliminadas);
+    required<HTMLElement>('#stat-deleted-rate').textContent = `${formatNumber(stats.porcentaje_ofertas_eliminadas)} %`;
 
     required<HTMLElement>('#stats-funnel').innerHTML = renderBars(
       statusOrder.map((status) => ({ label: statusLabels[status], value: stats.por_estado[status] ?? 0 })),

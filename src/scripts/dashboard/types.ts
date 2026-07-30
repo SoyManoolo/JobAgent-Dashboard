@@ -79,6 +79,8 @@ export type OffersResponse = {
 
 export type DashboardStats = {
   total_ofertas: number;
+  ofertas_eliminadas: number;
+  porcentaje_ofertas_eliminadas: number;
   aplicadas: number;
   descartadas: number;
   por_estado: Partial<Record<OfferStatus, number>>;

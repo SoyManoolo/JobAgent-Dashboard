@@ -17,7 +17,7 @@ import { renderOfferDetail, renderOffers, setError, setLoading, setStatusText } 
 import { labels } from './shared';
 import type { Offer } from './types';
 
-type DashboardView = 'active' | 'applied';
+type DashboardView = 'active' | 'applied' | 'discarded';
 
 const API_PAGE_LIMIT = 100;
 
@@ -33,7 +33,11 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
 
   const currentFilters = () => ({
     empresa: elements.empresa.value,
-    estado: view === 'applied' ? 'aplicada' : elements.estado.value,
+    estado: view === 'applied'
+      ? 'aplicada'
+      : view === 'discarded'
+        ? 'descartada'
+        : elements.estado.value,
     perfil: elements.perfil.value,
     score: elements.score.value,
     sencilla: elements.sencilla.value,
@@ -208,7 +212,9 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       const matchingOffers = await fetchAllMatchingOffers();
       const visibleOffers = view === 'applied'
         ? matchingOffers.filter((offer) => offer.estado === 'aplicada')
-        : matchingOffers.filter((offer) => offer.estado !== 'aplicada');
+        : view === 'discarded'
+          ? matchingOffers.filter((offer) => offer.estado === 'descartada')
+          : matchingOffers.filter((offer) => !['aplicada', 'descartada'].includes(offer.estado));
       totalOffers = visibleOffers.length;
       const totalPages = Math.max(1, Math.ceil(totalOffers / PAGE_LIMIT));
       currentPage = Math.min(currentPage, totalPages);
