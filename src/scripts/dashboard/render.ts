@@ -98,6 +98,16 @@ const renderSection = (title: string, content: string, className = ''): string =
 
 const renderDetail = (label: string, value: string): string => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
 
+const offerLink = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('Protocolo no válido');
+    return `<a class="offer-link" href="${escapeHtml(parsedUrl.href)}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`;
+  } catch {
+    return 'No disponible';
+  }
+};
+
 const renderStatusOptions = (offer: Offer, labels: LabelMap): string => {
   const statuses: LabelKey[] = ['extraida', 'analizada', 'pendientes_respuestas', 'lista_para_aplicar', 'aplicada', 'descartada', 'error'];
   return statuses
@@ -124,6 +134,7 @@ const renderOfferInformation = (offer: Offer, profile: string, value: (item: str
     ${renderDetail('Descubierta', value(new Date(offer.fecha_descubrimiento).toLocaleDateString('es-ES')))}
     ${renderDetail('Tipo de aplicación', value(offer.aplicacion_sencilla ? 'Solicitud sencilla' : 'Aplicación externa'))}
     ${renderDetail('Salario', value(offer.salario))}
+    ${renderDetail('Enlace', offerLink(offer.url))}
   </dl>`);
 
 const renderScores = (offer: Offer, value: (item: string | number | null | undefined) => string): string =>

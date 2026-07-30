@@ -780,6 +780,15 @@ dialog::backdrop {
   margin: 4px 0 0;
 }
 
+.offer-link {
+  color: #2d6850;
+  font-weight: 700;
+}
+
+.offer-link:hover {
+  color: #1f4f3b;
+}
+
 .form-questions {
   display: grid;
   gap: 12px;
@@ -1070,6 +1079,14 @@ dialog::backdrop {
 
 :root[data-theme='dark'] .modal-content section {
   border-color: #304038;
+}
+
+:root[data-theme='dark'] .offer-link {
+  color: #9dd5b0;
+}
+
+:root[data-theme='dark'] .offer-link:hover {
+  color: #c1e9cb;
 }
 
 :root[data-theme='dark'] dialog::backdrop {
