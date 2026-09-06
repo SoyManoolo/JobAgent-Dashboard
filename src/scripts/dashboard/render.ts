@@ -16,8 +16,13 @@ export const setStatusText = (elements: DashboardElements, text: string, mock: b
   elements.connection.innerHTML = `<span></span>${text}`;
   elements.connection.classList.toggle('mock', mock);
 };
-export const setLoading = (elements: DashboardElements, loading: boolean): void => { elements.loadState.hidden = !loading; elements.loadState.textContent = loading ? 'Cargando ofertas…' : ''; };
+export const setLoading = (elements: DashboardElements, loading: boolean): void => { elements.loadState.hidden = !loading; elements.loadState.textContent = loading ? 'Cargando ofertas…' : ''; elements.jobs.setAttribute('aria-busy', String(loading)); };
 export const setError = (elements: DashboardElements, message = ''): void => { elements.errorState.hidden = !message; elements.errorMessage.textContent = message; };
+export const showToast = (elements: DashboardElements, message: string): void => {
+  elements.toast.textContent = message;
+  elements.toast.hidden = false;
+  window.setTimeout(() => { elements.toast.hidden = true; }, 4500);
+};
 
 export const renderOffers = (
   elements: DashboardElements,
@@ -31,6 +36,7 @@ export const renderOffers = (
   primaryAction: (offer: Offer) => void | Promise<void>,
 ): void => {
   elements.jobs.innerHTML = '';
+  elements.jobs.setAttribute('aria-busy', 'false');
   elements.total.textContent = String(total);
   elements.results.textContent = `${total} ${total === 1 ? 'oferta encontrada' : 'ofertas encontradas'}`;
   elements.empty.hidden = offers.length !== 0;
@@ -48,7 +54,9 @@ export const renderOffers = (
     const initials = initialsFor(offer.empresa);
     requiredChild<HTMLElement>(card, '.company-logo').textContent = initials;
     requiredChild<HTMLElement>(card, '.company').textContent = offer.empresa;
-    requiredChild<HTMLHeadingElement>(card, 'h2').textContent = offer.titulo;
+    const open = requiredChild<HTMLButtonElement>(card, '.job-open');
+    open.textContent = offer.titulo;
+    open.setAttribute('aria-label', `Ver detalle de ${offer.titulo} en ${offer.empresa}`);
     requiredChild<HTMLElement>(card, '.location').textContent = offer.ubicacion || 'Ubicación no indicada';
     requiredChild<HTMLElement>(card, '.summary').textContent = offer.resumen ?? '';
 
@@ -59,18 +67,17 @@ export const renderOffers = (
     requiredChild<HTMLElement>(card, '.score strong').textContent = String(offer.score_encaje ?? '—');
     requiredChild<HTMLElement>(card, '.tags').innerHTML = `${tag(labels[(offer.perfil_recomendado ?? '') as LabelKey] || 'Sin perfil', 'profile')} ${tag(offer.aplicacion_sencilla ? 'Solicitud sencilla' : 'Aplicación externa', offer.aplicacion_sencilla ? 'easy' : '')}`;
 
-    card.addEventListener('click', () => openDetail(offer.id));
-    card.addEventListener('keydown', (event: KeyboardEvent) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        openDetail(offer.id);
-      }
-    });
+    open.addEventListener('click', () => openDetail(offer.id));
 
     const apply = requiredChild<HTMLButtonElement>(card, '.apply');
     if (hasPrimaryAction(offer)) {
       apply.textContent = primaryActionLabel(offer);
-      apply.addEventListener('click', (event: MouseEvent) => { event.stopPropagation(); primaryAction(offer); });
+    apply.addEventListener('click', async () => {
+      apply.disabled = true;
+      const label = apply.textContent;
+      apply.textContent = 'Procesando…';
+      try { await primaryAction(offer); } finally { apply.disabled = false; apply.textContent = label; }
+    });
     } else {
       apply.remove();
     }
@@ -131,11 +138,16 @@ const renderOfferInformation = (offer: Offer, profile: string, value: (item: str
     ${renderDetail('Perfil recomendado', value(profile))}
     ${renderDetail('Senioridad', value(offer.seniority))}
     ${renderDetail('Idioma', value(offer.idioma_oferta))}
-    ${renderDetail('Descubierta', value(new Date(offer.fecha_descubrimiento).toLocaleDateString('es-ES')))}
+    ${renderDetail('Descubierta', value(formatDate(offer.fecha_descubrimiento)))}
     ${renderDetail('Tipo de aplicación', value(offer.aplicacion_sencilla ? 'Solicitud sencilla' : 'Aplicación externa'))}
     ${renderDetail('Salario', value(offer.salario))}
     ${renderDetail('Enlace', offerLink(offer.url))}
   </dl>`);
+
+const formatDate = (date: string): string | undefined => {
+  const value = new Date(date);
+  return Number.isNaN(value.getTime()) ? undefined : value.toLocaleDateString('es-ES');
+};
 
 const renderScores = (offer: Offer, value: (item: string | number | null | undefined) => string): string =>
   renderSection('Scores por perfil', `<dl>

@@ -1,4 +1,5 @@
 import {
+  ApiError,
   analyzeOffer,
   confirmOfferAnswers,
   deleteOfferById,
@@ -13,13 +14,16 @@ import {
   updateOfferNotes,
 } from './api';
 import { getDashboardElements } from './dom';
-import { renderOfferDetail, renderOffers, setError, setLoading, setStatusText } from './render';
+import { renderOfferDetail, renderOffers, setError, setLoading, setStatusText, showToast } from './render';
 import { labels } from './shared';
 import type { Offer } from './types';
 
 type DashboardView = 'active' | 'applied' | 'discarded';
 
 const API_PAGE_LIMIT = 100;
+const preferencesKey = 'jobagent-dashboard-preferences';
+type SortOrder = 'fecha' | 'score' | 'empresa' | 'estado';
+type DashboardPreferences = { empresa: string; estado: string; perfil: string; score: string; sencilla: string; orden: SortOrder };
 
 export const initJobDashboard = (view: DashboardView = 'active'): void => {
   const elements = getDashboardElements();
@@ -28,8 +32,24 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   let activeOffers = 0;
   let currentPage = 1;
   let loading = false;
+  let loadController: AbortController | undefined;
+  let detailTrigger: HTMLElement | undefined;
   let offerPendingDeletion: string | undefined;
   let discardConfirmationResolver: ((confirmed: boolean) => void) | undefined;
+
+  const restorePreferences = (): void => {
+    const saved = localStorage.getItem(preferencesKey);
+    if (!saved) return;
+    try {
+      const values = JSON.parse(saved) as Partial<DashboardPreferences>;
+      elements.empresa.value = values.empresa ?? '';
+      elements.estado.value = values.estado ?? '';
+      elements.perfil.value = values.perfil ?? '';
+      elements.score.value = values.score ?? '';
+      elements.sencilla.value = values.sencilla ?? '';
+      elements.orden.value = values.orden ?? 'fecha';
+    } catch { localStorage.removeItem(preferencesKey); }
+  };
 
   const currentFilters = () => ({
     empresa: elements.empresa.value,
@@ -43,15 +63,20 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     sencilla: elements.sencilla.value,
   });
 
-  const fetchAllMatchingOffers = async (): Promise<Offer[]> => {
-    const firstPage = await fetchOffers(currentFilters(), 1, API_PAGE_LIMIT);
+  const savePreferences = (): void => {
+    const { empresa, estado, perfil, score, sencilla } = currentFilters();
+    localStorage.setItem(preferencesKey, JSON.stringify({ empresa, estado, perfil, score, sencilla, orden: elements.orden.value as SortOrder }));
+  };
+
+  const fetchAllMatchingOffers = async (signal: AbortSignal): Promise<Offer[]> => {
+    const firstPage = await fetchOffers(currentFilters(), 1, API_PAGE_LIMIT, signal);
     const totalPages = Math.ceil(firstPage.total / API_PAGE_LIMIT);
     if (totalPages <= 1) return firstPage.resultados ?? [];
 
     const remainingPages = await Promise.all(
       Array.from(
         { length: totalPages - 1 },
-        (_, index) => fetchOffers(currentFilters(), index + 2, API_PAGE_LIMIT),
+        (_, index) => fetchOffers(currentFilters(), index + 2, API_PAGE_LIMIT, signal),
       ),
     );
     return [
@@ -83,7 +108,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
         field.closest('li')?.classList.add('answer-saved');
         return true;
       } catch {
-        alert('No se pudo guardar la respuesta.');
+        showToast(elements, 'No se pudo guardar la respuesta.');
         return false;
       } finally {
         field.disabled = false;
@@ -98,7 +123,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     confirmAnswers?.addEventListener('click', async () => {
       confirmAnswers.disabled = true;
       if (!await answerSaveQueue) {
-        alert('Corrige o vuelve a guardar las respuestas antes de confirmarlas.');
+        showToast(elements, 'Corrige o vuelve a guardar las respuestas antes de confirmarlas.');
         confirmAnswers.disabled = false;
         return;
       }
@@ -109,7 +134,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
         showOfferDetail(updated);
         renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
       } catch {
-        alert('No se pudieron confirmar las respuestas. Revisa las preguntas obligatorias.');
+        showToast(elements, 'No se pudieron confirmar las respuestas. Revisa las preguntas obligatorias.');
         confirmAnswers.disabled = false;
       }
     });
@@ -142,7 +167,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
           ? statusUpdated
           : updateOfferNotes(offer.id, notesValue);
       })().catch(() => undefined);
-      if (!updated) { alert('No se pudieron guardar los cambios.'); save.disabled = false; return; }
+      if (!updated) { showToast(elements, 'No se pudieron guardar los cambios.'); save.disabled = false; return; }
       offers = offers.map((item) => item.id === offer.id ? updated : item);
       showOfferDetail(updated);
       renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
@@ -150,6 +175,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   };
 
   const openDetail = async (id: string): Promise<void> => {
+    detailTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     const offer = await fetchOfferById(id).catch(() => offers.find((item) => item.id === id));
     if (!offer) return;
     showOfferDetail(offer);
@@ -174,7 +200,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
         return;
       }
     } catch {
-      alert('No se ha podido completar la acción en la API.');
+      showToast(elements, 'No se ha podido completar la acción en la API.');
       return;
     }
     void loadOffers();
@@ -184,7 +210,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     try {
       await deleteOfferById(id);
     } catch {
-      alert('No se ha podido eliminar la oferta en la API.');
+      showToast(elements, 'No se ha podido eliminar la oferta en la API.');
       return;
     }
 
@@ -204,34 +230,57 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   });
 
   const loadOffers = async (): Promise<void> => {
-    if (loading) return;
+    loadController?.abort();
+    const controller = new AbortController();
+    loadController = controller;
     loading = true;
     setLoading(elements, true);
     setError(elements);
     try {
-      const matchingOffers = await fetchAllMatchingOffers();
+      const matchingOffers = await fetchAllMatchingOffers(controller.signal);
+      if (loadController !== controller) return;
       const visibleOffers = view === 'applied'
         ? matchingOffers.filter((offer) => offer.estado === 'aplicada')
         : view === 'discarded'
           ? matchingOffers.filter((offer) => offer.estado === 'descartada')
           : matchingOffers.filter((offer) => !['aplicada', 'descartada'].includes(offer.estado));
-      totalOffers = visibleOffers.length;
+      const sortedOffers = [...visibleOffers].sort((left, right) => {
+        switch (elements.orden.value as SortOrder) {
+          case 'score': return (right.score_encaje ?? -1) - (left.score_encaje ?? -1);
+          case 'empresa': return left.empresa.localeCompare(right.empresa, 'es');
+          case 'estado': return left.estado.localeCompare(right.estado, 'es');
+          default: return Date.parse(right.fecha_descubrimiento) - Date.parse(left.fecha_descubrimiento);
+        }
+      });
+      totalOffers = sortedOffers.length;
       const totalPages = Math.max(1, Math.ceil(totalOffers / PAGE_LIMIT));
       currentPage = Math.min(currentPage, totalPages);
       const firstOffer = (currentPage - 1) * PAGE_LIMIT;
-      offers = visibleOffers.slice(firstOffer, firstOffer + PAGE_LIMIT);
+      offers = sortedOffers.slice(firstOffer, firstOffer + PAGE_LIMIT);
       activeOffers = totalOffers;
       setStatusText(elements, 'API conectada', false);
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      if (loadController !== controller) return;
       offers = [];
       totalOffers = 0;
       activeOffers = 0;
       setStatusText(elements, 'Sin conexión', false);
-      setError(elements, 'No se han podido cargar las ofertas. Comprueba la conexión e inténtalo de nuevo.');
+      const message = error instanceof ApiError
+        ? error.status === 401 || error.status === 403
+          ? 'No tienes permiso para acceder a las ofertas.'
+          : error.status === 422
+            ? 'Los filtros enviados no son válidos.'
+            : `La API respondió con un error (${error.status}).`
+        : 'No se ha podido conectar con la API. Comprueba que está en ejecución.';
+      setError(elements, message);
     } finally {
-      loading = false;
-      setLoading(elements, false);
+      if (loadController === controller) {
+        loading = false;
+        setLoading(elements, false);
+      }
     }
+    if (loadController !== controller) return;
     renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
     if (elements.errorState.hidden) elements.total.textContent = String(activeOffers);
   };
@@ -254,6 +303,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   }, 350);
 
   elements.modalClose.addEventListener('click', () => elements.modal.close());
+  elements.modal.addEventListener('close', () => detailTrigger?.focus());
   elements.modal.addEventListener('click', (event: MouseEvent) => {
     if (event.target === elements.modal) elements.modal.close();
   });
@@ -263,11 +313,16 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   elements.deleteConfirmModal.addEventListener('close', () => {
     offerPendingDeletion = undefined;
   });
-  elements.confirmDelete.addEventListener('click', () => {
+  elements.confirmDelete.addEventListener('click', async () => {
     const id = offerPendingDeletion;
     if (!id) return;
-    elements.deleteConfirmModal.close();
-    void deleteOffer(id);
+    elements.confirmDelete.disabled = true;
+    try {
+      elements.deleteConfirmModal.close();
+      await deleteOffer(id);
+    } finally {
+      elements.confirmDelete.disabled = false;
+    }
   });
   elements.discardConfirmModal.addEventListener('click', (event: MouseEvent) => {
     if (event.target === elements.discardConfirmModal) elements.discardConfirmModal.close();
@@ -283,9 +338,11 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     elements.discardConfirmModal.close();
     resolve?.(true);
   });
-  elements.empresa.addEventListener('input', loadOffersDebounced);
+  restorePreferences();
+  elements.empresa.addEventListener('input', () => { savePreferences(); loadOffersDebounced(); });
   document.querySelectorAll<HTMLSelectElement>('.filters select').forEach((control) => {
     control.addEventListener('change', () => {
+      savePreferences();
       currentPage = 1;
       void loadOffers();
     });
@@ -296,6 +353,8 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       .forEach((control) => {
         control.value = '';
       });
+    elements.orden.value = 'fecha';
+    savePreferences();
     currentPage = 1;
     void loadOffers();
   });

@@ -3,6 +3,18 @@ import type { DashboardStats, FormAnswerUpdate, FormAnswerUpdateResponse, Offer,
 export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1';
 export const PAGE_LIMIT = 10;
 
+export class ApiError extends Error {
+  constructor(message: string, readonly status?: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+const apiError = async (response: Response, fallback: string): Promise<ApiError> => {
+  const payload = await response.json().catch(() => undefined) as { detail?: string } | undefined;
+  return new ApiError(payload?.detail || fallback, response.status);
+};
+
 export const buildApiParams = (filters: {
   empresa: string;
   estado: string;
@@ -25,9 +37,9 @@ export const fetchOffers = async (filters: {
   perfil: string;
   score: string;
   sencilla: string;
-}, page: number, limit: number): Promise<OffersResponse> => {
-  const response = await fetch(`${API_BASE_URL}/ofertas/?${buildApiParams(filters, page, limit)}`);
-  if (!response.ok) throw new Error(`La API respondió con error ${response.status}`);
+}, page: number, limit: number, signal?: AbortSignal): Promise<OffersResponse> => {
+  const response = await fetch(`${API_BASE_URL}/ofertas/?${buildApiParams(filters, page, limit)}`, { signal });
+  if (!response.ok) throw await apiError(response, `La API respondió con error ${response.status}`);
   return (await response.json()) as OffersResponse;
 };
 

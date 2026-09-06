@@ -40,17 +40,19 @@ import '../styles/dashboard.css';
 
       <select id="estado" hidden><option value="descartada" selected>Descartada</option></select>
       <section class="filters filters-applied" aria-label="Filtros de ofertas descartadas">
-        <label class="search"><span aria-hidden="true">⌕</span><input id="empresa" type="search" placeholder="Buscar por empresa" /></label>
+        <label class="search"><span aria-hidden="true">⌕</span><input id="empresa" type="search" placeholder="Buscar por empresa" aria-label="Buscar por empresa" /></label>
         <label><span>Perfil</span><select id="perfil"><option value="">Todos</option><option value="backend">Backend</option><option value="ia">IA</option><option value="desconocido">Desconocido</option></select></label>
         <label><span>Score mínimo</span><select id="score"><option value="">Cualquiera</option><option value="50">50+</option><option value="60">60+</option><option value="70">70+</option><option value="80">80+</option><option value="90">90+</option></select></label>
-        <label><span>Solicitud</span><select id="sencilla"><option value="">Todas</option><option value="true">Sencilla</option><option value="false">Con preguntas</option></select></label>
+        <label><span>Solicitud</span><select id="sencilla"><option value="">Todas</option><option value="true">Sencilla</option><option value="false">Externa</option></select></label>
+        <label><span>Ordenar por</span><select id="orden"><option value="fecha">Más recientes</option><option value="score">Mayor score</option><option value="empresa">Empresa</option><option value="estado">Estado</option></select></label>
         <button class="clear" id="clear-filters" type="button">Limpiar filtros</button>
       </section>
 
       <div class="results-header"><p id="results-count">Cargando...</p><p>Haz clic en una oferta para ver el detalle</p></div>
-      <div class="load-state" id="load-state" hidden></div>
-      <div class="error-state" id="error-state" hidden><span id="error-message"></span><button id="retry-load" type="button">Reintentar</button></div>
-      <section class="jobs" id="jobs" aria-live="polite"></section>
+      <div class="load-state" id="load-state" role="status" aria-live="polite" hidden></div>
+      <div class="error-state" id="error-state" role="alert" hidden><span id="error-message"></span><button id="retry-load" type="button">Reintentar</button></div>
+      <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+      <section class="jobs" id="jobs" aria-live="polite" aria-busy="false"></section>
       <p class="empty" id="empty" hidden>No hay ofertas descartadas que coincidan con los filtros.</p>
       <nav class="pagination" id="pagination" aria-label="Paginación de ofertas" hidden>
         <button id="previous-page" type="button">Anterior</button>
@@ -59,7 +61,7 @@ import '../styles/dashboard.css';
       </nav>
     </main>
 
-    <dialog id="detail-modal">
+    <dialog id="detail-modal" aria-label="Detalle de oferta">
       <article class="modal-content">
         <button class="modal-close" id="modal-close" aria-label="Cerrar detalle" type="button">×</button>
         <div id="modal-body"></div>
@@ -89,10 +91,10 @@ import '../styles/dashboard.css';
     </dialog>
 
     <template id="job-template">
-      <article class="job-card" tabindex="0">
+      <article class="job-card">
         <div class="job-main">
           <div class="company-row"><span class="company-logo"></span><span class="company"></span></div>
-          <h2></h2>
+          <h2><button class="job-open" type="button"></button></h2>
           <p class="location"></p>
           <p class="summary"></p>
           <div class="tags"></div>
