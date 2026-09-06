@@ -62,7 +62,6 @@ export type Offer = {
   idioma_oferta: string | null;
   seniority: Seniority | null;
   score_backend: number | null;
-  score_fullstack: number | null;
   score_ia: number | null;
   score_encaje: number | null;
   keywords: string[] | null;
@@ -140,6 +139,7 @@ export type DashboardElements = {
   perfil: HTMLSelectElement;
   score: HTMLSelectElement;
   sencilla: HTMLSelectElement;
+  orden: HTMLSelectElement;
   modalClose: HTMLButtonElement;
   clearFilters: HTMLButtonElement;
   pagination: HTMLElement;
@@ -150,6 +150,7 @@ export type DashboardElements = {
   errorState: HTMLElement;
   errorMessage: HTMLElement;
   retryLoad: HTMLButtonElement;
+  toast: HTMLElement;
   deleteConfirmModal: HTMLDialogElement;
   confirmDelete: HTMLButtonElement;
   discardConfirmModal: HTMLDialogElement;

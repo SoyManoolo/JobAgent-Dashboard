@@ -73,7 +73,7 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 | `POST` | `/agent/ofertas/procesar/{id}` | Análisis y clasificación de una oferta extraída. |
 | `POST` | `/scraper/linkedin/easyapply/procesar/{id}` | Extracción y guardado de preguntas Easy Apply. |
 | `POST` | `/scraper/linkedin/easyapply/aplicar/{id}` | Envío de una solicitud Easy Apply lista para aplicar. |
-| `POST` | `/agent/ofertas/{id}/responder` | Generación de respuestas para una oferta. |
+| `POST` | `/agent/ofertas/responder/{id}` | Generación de respuestas para una oferta. |
 | `PATCH` | `/ofertas/{oferta_id}/respuestas/{pregunta_id}` | Guardado de una respuesta revisada manualmente. |
 | `POST` | `/ofertas/{oferta_id}/respuestas/confirmar` | Confirmación de respuestas y avance a `lista_para_aplicar`. |
 
