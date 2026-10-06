@@ -130,9 +130,8 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       try {
         await confirmOfferAnswers(offer.id);
         const updated = await fetchOfferById(offer.id);
-        offers = offers.map((item) => item.id === offer.id ? updated : item);
         showOfferDetail(updated);
-        renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
+        await loadOffers();
       } catch {
         showToast(elements, 'No se pudieron confirmar las respuestas. Revisa las preguntas obligatorias.');
         confirmAnswers.disabled = false;
@@ -168,9 +167,8 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
           : updateOfferNotes(offer.id, notesValue);
       })().catch(() => undefined);
       if (!updated) { showToast(elements, 'No se pudieron guardar los cambios.'); save.disabled = false; return; }
-      offers = offers.map((item) => item.id === offer.id ? updated : item);
       showOfferDetail(updated);
-      renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
+      await loadOffers();
     });
   };
 
