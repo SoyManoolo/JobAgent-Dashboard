@@ -37,6 +37,9 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   let latestDetailRequest = 0;
   let offerPendingDeletion: string | undefined;
   let discardConfirmationResolver: ((confirmed: boolean) => void) | undefined;
+  const pendingActions = new Map<string, Offer['estado']>();
+  const refreshingActions = new Set<string>();
+  const actionsNeedingRefresh = new Set<string>();
 
   const restorePreferences = (): void => {
     const saved = localStorage.getItem(preferencesKey);
@@ -183,6 +186,10 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   };
 
   const primaryAction = async (offer: Offer): Promise<void> => {
+    if (pendingActions.has(offer.id)) return;
+    const postsToApi = offer.estado === 'extraida' || (offer.aplicacion_sencilla &&
+      ['analizada', 'pendientes_respuestas', 'lista_para_aplicar'].includes(offer.estado));
+    if (postsToApi) pendingActions.set(offer.id, offer.estado);
     try {
       if (offer.estado === 'extraida') {
         await analyzeOffer(offer.id);
@@ -200,10 +207,42 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
         return;
       }
     } catch {
+      pendingActions.delete(offer.id);
+      if (postsToApi) {
+        renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction, pendingActions);
+      }
       showToast(elements, 'No se ha podido completar la acción en la API.');
       return;
     }
-    void loadOffers();
+    actionsNeedingRefresh.add(offer.id);
+    await refreshPendingAction(offer.id);
+  };
+
+  const refreshPendingAction = async (id: string): Promise<void> => {
+    const previousStatus = pendingActions.get(id);
+    if (!previousStatus || refreshingActions.has(id)) return;
+    refreshingActions.add(id);
+    try {
+      const updated = await fetchOfferById(id);
+      if (updated.estado === previousStatus) {
+        setError(elements, 'La oferta aún no muestra un estado nuevo. Vuelve a consultar antes de repetir la acción.');
+        return;
+      }
+      if (!await loadOffers()) return;
+      const visible = offers.find((offer) => offer.id === id);
+      if (visible && visible.estado !== updated.estado) {
+        setError(elements, 'La lista aún no muestra el estado nuevo. Vuelve a consultar antes de repetir la acción.');
+        return;
+      }
+      pendingActions.delete(id);
+      actionsNeedingRefresh.delete(id);
+      if (actionsNeedingRefresh.size === 0) setError(elements);
+      renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction, pendingActions);
+    } catch {
+      setError(elements, 'No se pudo consultar el estado actualizado de la oferta. Vuelve a consultar antes de repetir la acción.');
+    } finally {
+      refreshingActions.delete(id);
+    }
   };
 
   const deleteOffer = async (id: string): Promise<void> => {
@@ -229,16 +268,17 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     elements.discardConfirmModal.showModal();
   });
 
-  const loadOffers = async (): Promise<void> => {
+  const loadOffers = async (): Promise<boolean> => {
     loadController?.abort();
     const controller = new AbortController();
     loadController = controller;
     loading = true;
     setLoading(elements, true);
     setError(elements);
+    let succeeded = false;
     try {
       const matchingOffers = await fetchAllMatchingOffers(controller.signal);
-      if (loadController !== controller) return;
+      if (loadController !== controller) return false;
       const visibleOffers = view === 'applied'
         ? matchingOffers.filter((offer) => offer.estado === 'aplicada')
         : view === 'discarded'
@@ -259,9 +299,10 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       offers = sortedOffers.slice(firstOffer, firstOffer + PAGE_LIMIT);
       activeOffers = totalOffers;
       setStatusText(elements, 'API conectada', false);
+      succeeded = true;
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      if (loadController !== controller) return;
+      if (error instanceof DOMException && error.name === 'AbortError') return false;
+      if (loadController !== controller) return false;
       offers = [];
       totalOffers = 0;
       activeOffers = 0;
@@ -280,9 +321,15 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
         setLoading(elements, false);
       }
     }
-    if (loadController !== controller) return;
-    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction);
-    if (elements.errorState.hidden) elements.total.textContent = String(activeOffers);
+    if (loadController !== controller) return false;
+    renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction, pendingActions);
+    if (succeeded) {
+      elements.total.textContent = String(activeOffers);
+      if (actionsNeedingRefresh.size > 0) {
+        setError(elements, 'Hay acciones pendientes de verificar. Vuelve a consultar antes de repetirlas.');
+      }
+    }
+    return succeeded;
   };
 
   const debounce = <T extends (...args: never[]) => void>(
@@ -369,7 +416,13 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     void loadOffers();
   });
   elements.retryLoad.addEventListener('click', () => {
-    void loadOffers();
+    if (pendingActions.size > 0) {
+      void (async () => {
+        for (const id of pendingActions.keys()) await refreshPendingAction(id);
+      })();
+    } else {
+      void loadOffers();
+    }
   });
 
   void loadOffers();

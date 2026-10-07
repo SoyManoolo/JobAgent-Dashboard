@@ -34,6 +34,7 @@ export const renderOffers = (
   openDetail: (id: string) => void,
   deleteOffer: (id: string) => void,
   primaryAction: (offer: Offer) => void | Promise<void>,
+  pendingActions: ReadonlyMap<string, Offer['estado']>,
 ): void => {
   elements.jobs.innerHTML = '';
   elements.jobs.setAttribute('aria-busy', 'false');
@@ -72,12 +73,18 @@ export const renderOffers = (
     const apply = requiredChild<HTMLButtonElement>(card, '.apply');
     if (hasPrimaryAction(offer)) {
       apply.textContent = primaryActionLabel(offer);
-    apply.addEventListener('click', async () => {
-      apply.disabled = true;
-      const label = apply.textContent;
-      apply.textContent = 'Procesando…';
-      try { await primaryAction(offer); } finally { apply.disabled = false; apply.textContent = label; }
-    });
+      apply.disabled = pendingActions.has(offer.id);
+      if (apply.disabled) apply.textContent = 'Actualizando estado…';
+      apply.addEventListener('click', async () => {
+        if (pendingActions.has(offer.id)) return;
+        apply.disabled = true;
+        const label = apply.textContent;
+        apply.textContent = 'Procesando…';
+        try { await primaryAction(offer); } finally {
+          apply.disabled = pendingActions.has(offer.id);
+          apply.textContent = apply.disabled ? 'Actualizando estado…' : label;
+        }
+      });
     } else {
       apply.remove();
     }
