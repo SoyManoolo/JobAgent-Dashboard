@@ -34,6 +34,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   let loading = false;
   let loadController: AbortController | undefined;
   let detailTrigger: HTMLElement | undefined;
+  let latestDetailRequest = 0;
   let offerPendingDeletion: string | undefined;
   let discardConfirmationResolver: ((confirmed: boolean) => void) | undefined;
 
@@ -173,9 +174,10 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   };
 
   const openDetail = async (id: string): Promise<void> => {
+    const detailRequest = ++latestDetailRequest;
     detailTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     const offer = await fetchOfferById(id).catch(() => offers.find((item) => item.id === id));
-    if (!offer) return;
+    if (detailRequest !== latestDetailRequest || !offer) return;
     showOfferDetail(offer);
     elements.modal.showModal();
   };
