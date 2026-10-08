@@ -101,7 +101,8 @@ const hasPrimaryAction = (offer: Offer): boolean => !['aplicada', 'descartada', 
 
 const primaryActionLabel = (offer: Offer): string => {
   if (offer.estado === 'extraida') return 'Analizar oferta';
-  if (offer.estado === 'analizada') return offer.aplicacion_sencilla ? 'Guardar preguntas' : 'Abrir oferta';
+  if (!offer.aplicacion_sencilla) return 'Abrir oferta';
+  if (offer.estado === 'analizada') return 'Guardar preguntas';
   if (offer.estado === 'pendientes_respuestas') return 'Generar respuestas';
   if (offer.estado === 'lista_para_aplicar') return 'Enviar solicitud';
   return 'Abrir oferta';
