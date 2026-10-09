@@ -22,8 +22,11 @@ type DashboardView = 'active' | 'applied' | 'discarded';
 
 const API_PAGE_LIMIT = 100;
 const preferencesKey = 'jobagent-dashboard-preferences';
+const activeStatusKey = 'jobagent-dashboard-active-status';
+const activeStatuses = new Set(['extraida', 'analizada', 'pendientes_respuestas', 'lista_para_aplicar', 'error']);
 type SortOrder = 'fecha' | 'score' | 'empresa' | 'estado';
-type DashboardPreferences = { empresa: string; estado: string; perfil: string; score: string; sencilla: string; orden: SortOrder };
+type DashboardPreferences = { empresa: string; perfil: string; score: string; sencilla: string; orden: SortOrder };
+type LegacyDashboardPreferences = DashboardPreferences & { estado?: string };
 
 export const initJobDashboard = (view: DashboardView = 'active'): void => {
   const elements = getDashboardElements();
@@ -43,16 +46,23 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
 
   const restorePreferences = (): void => {
     const saved = localStorage.getItem(preferencesKey);
-    if (!saved) return;
-    try {
-      const values = JSON.parse(saved) as Partial<DashboardPreferences>;
-      elements.empresa.value = values.empresa ?? '';
-      elements.estado.value = values.estado ?? '';
-      elements.perfil.value = values.perfil ?? '';
-      elements.score.value = values.score ?? '';
-      elements.sencilla.value = values.sencilla ?? '';
-      elements.orden.value = values.orden ?? 'fecha';
-    } catch { localStorage.removeItem(preferencesKey); }
+    if (saved) {
+      try {
+        const values = JSON.parse(saved) as Partial<LegacyDashboardPreferences>;
+        elements.empresa.value = values.empresa ?? '';
+        elements.perfil.value = values.perfil ?? '';
+        elements.score.value = values.score ?? '';
+        elements.sencilla.value = values.sencilla ?? '';
+        elements.orden.value = values.orden ?? 'fecha';
+        if (localStorage.getItem(activeStatusKey) === null && values.estado && activeStatuses.has(values.estado)) {
+          localStorage.setItem(activeStatusKey, values.estado);
+        }
+      } catch { localStorage.removeItem(preferencesKey); }
+    }
+    if (view === 'active') {
+      const status = localStorage.getItem(activeStatusKey) ?? '';
+      if (Array.from(elements.estado.options).some((option) => option.value === status)) elements.estado.value = status;
+    }
   };
 
   const currentFilters = () => ({
@@ -68,8 +78,9 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   });
 
   const savePreferences = (): void => {
-    const { empresa, estado, perfil, score, sencilla } = currentFilters();
-    localStorage.setItem(preferencesKey, JSON.stringify({ empresa, estado, perfil, score, sencilla, orden: elements.orden.value as SortOrder }));
+    const { empresa, perfil, score, sencilla } = currentFilters();
+    localStorage.setItem(preferencesKey, JSON.stringify({ empresa, perfil, score, sencilla, orden: elements.orden.value as SortOrder }));
+    if (view === 'active') localStorage.setItem(activeStatusKey, elements.estado.value);
   };
 
   const fetchAllMatchingOffers = async (signal: AbortSignal): Promise<Offer[]> => {
