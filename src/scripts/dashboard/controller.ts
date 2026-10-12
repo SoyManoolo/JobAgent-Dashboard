@@ -14,6 +14,7 @@ import {
   updateOfferNotes,
 } from './api';
 import { getDashboardElements } from './dom';
+import { validOfferUrl } from './offer-url';
 import { renderOfferDetail, renderOffers, setError, setLoading, setStatusText, showToast } from './render';
 import { labels } from './shared';
 import type { Offer } from './types';
@@ -205,7 +206,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       if (offer.estado === 'extraida') {
         await analyzeOffer(offer.id);
       } else if (!offer.aplicacion_sencilla) {
-        window.open(offer.url, '_blank', 'noopener,noreferrer');
+        openOfferUrl(offer.url);
         return;
       } else if (offer.estado === 'analizada') {
         await processEasyApply(offer.id);
@@ -214,7 +215,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       } else if (offer.estado === 'lista_para_aplicar') {
         await submitEasyApply(offer.id);
       } else {
-        window.open(offer.url, '_blank', 'noopener,noreferrer');
+        openOfferUrl(offer.url);
         return;
       }
     } catch {
@@ -227,6 +228,15 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     }
     actionsNeedingRefresh.add(offer.id);
     await refreshPendingAction(offer.id);
+  };
+
+  const openOfferUrl = (url: string): void => {
+    const validUrl = validOfferUrl(url);
+    if (!validUrl) {
+      showToast(elements, 'La URL de la oferta no es válida.');
+      return;
+    }
+    window.open(validUrl, '_blank', 'noopener,noreferrer');
   };
 
   const refreshPendingAction = async (id: string): Promise<void> => {
