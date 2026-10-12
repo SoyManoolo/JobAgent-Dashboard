@@ -1,6 +1,7 @@
 import { requiredChild } from './dom';
 import type { DashboardElements, FormAnswer, FormOption, FormQuestion, LabelMap, LabelKey, Offer } from './types';
 import { escapeHtml, initialsFor, tag } from './format';
+import { validOfferUrl } from './offer-url';
 
 export const createFiltersPredicate = (elements: DashboardElements) => (offer: Offer): boolean => {
   return (
@@ -114,13 +115,10 @@ const renderSection = (title: string, content: string, className = ''): string =
 const renderDetail = (label: string, value: string): string => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
 
 const offerLink = (url: string): string => {
-  try {
-    const parsedUrl = new URL(url);
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('Protocolo no válido');
-    return `<a class="offer-link" href="${escapeHtml(parsedUrl.href)}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`;
-  } catch {
-    return 'No disponible';
-  }
+  const validUrl = validOfferUrl(url);
+  return validUrl
+    ? `<a class="offer-link" href="${escapeHtml(validUrl)}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`
+    : 'No disponible';
 };
 
 const renderStatusOptions = (offer: Offer, labels: LabelMap): string => {
