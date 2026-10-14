@@ -191,9 +191,16 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   const openDetail = async (id: string): Promise<void> => {
     const detailRequest = ++latestDetailRequest;
     detailTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
-    const offer = await fetchOfferById(id).catch(() => offers.find((item) => item.id === id));
-    if (detailRequest !== latestDetailRequest || !offer) return;
-    showOfferDetail(offer);
+    try {
+      const offer = await fetchOfferById(id);
+      if (detailRequest !== latestDetailRequest) return;
+      showOfferDetail(offer);
+    } catch (error) {
+      if (detailRequest !== latestDetailRequest) return;
+      const status = error instanceof ApiError && error.status !== undefined ? ` (HTTP ${error.status})` : '';
+      const reason = error instanceof Error ? ` ${error.message}` : '';
+      elements.modalBody.textContent = `No se pudo cargar el detalle de la oferta${status}.${reason} Vuelve a intentarlo desde el listado.`;
+    }
     elements.modal.showModal();
   };
 

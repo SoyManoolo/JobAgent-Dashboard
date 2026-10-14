@@ -51,7 +51,7 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
 
 export const fetchOfferById = async (id: string): Promise<Offer> => {
   const response = await fetch(`${API_BASE_URL}/ofertas/${id}`);
-  if (!response.ok) throw new Error('No se pudo cargar la oferta');
+  if (!response.ok) throw await apiError(response, `No se pudo cargar la oferta (${response.status})`);
   return (await response.json()) as Offer;
 };
 
