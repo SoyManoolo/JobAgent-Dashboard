@@ -35,7 +35,7 @@ En ofertas que no usan Easy Apply, después del análisis se muestra **Abrir ofe
 
 - Node.js `>= 22.12.0`.
 - `pnpm`.
-- Backend de JobAgent accesible desde el navegador y configurado con CORS para el origen del dashboard.
+- Backend de JobAgent con soporte de `orden` y `excluir_estados` en `GET /ofertas/`, accesible desde el navegador y configurado con CORS para el origen del dashboard.
 
 ## Puesta en marcha
 

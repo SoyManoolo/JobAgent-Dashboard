@@ -20,7 +20,6 @@ import type { FormAnswerUpdate, Offer } from './types';
 
 type DashboardView = 'active' | 'applied' | 'discarded';
 
-const API_PAGE_LIMIT = 100;
 const preferencesKey = 'jobagent-dashboard-preferences';
 const activeStatusKey = 'jobagent-dashboard-active-status';
 const activeStatuses = new Set(['extraida', 'analizada', 'pendientes_respuestas', 'lista_para_aplicar', 'error']);
@@ -35,7 +34,6 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
   const elements = getDashboardElements();
   let offers: Offer[] = [];
   let totalOffers = 0;
-  let activeOffers = 0;
   let currentPage = 1;
   let loading = false;
   let loadController: AbortController | undefined;
@@ -79,29 +77,14 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     perfil: elements.perfil.value,
     score: elements.score.value,
     sencilla: elements.sencilla.value,
+    orden: (elements.orden.value || 'fecha') as SortOrder,
+    excludeStates: view === 'active' ? (['aplicada', 'descartada'] as const) : [],
   });
 
   const savePreferences = (): void => {
-    const { empresa, perfil, score, sencilla } = currentFilters();
-    localStorage.setItem(preferencesKey, JSON.stringify({ empresa, perfil, score, sencilla, orden: elements.orden.value as SortOrder }));
+    const { empresa, perfil, score, sencilla, orden } = currentFilters();
+    localStorage.setItem(preferencesKey, JSON.stringify({ empresa, perfil, score, sencilla, orden }));
     if (view === 'active') localStorage.setItem(activeStatusKey, elements.estado.value);
-  };
-
-  const fetchAllMatchingOffers = async (signal: AbortSignal): Promise<Offer[]> => {
-    const firstPage = await fetchOffers(currentFilters(), 1, API_PAGE_LIMIT, signal);
-    const totalPages = Math.ceil(firstPage.total / API_PAGE_LIMIT);
-    if (totalPages <= 1) return firstPage.resultados ?? [];
-
-    const remainingPages = await Promise.all(
-      Array.from(
-        { length: totalPages - 1 },
-        (_, index) => fetchOffers(currentFilters(), index + 2, API_PAGE_LIMIT, signal),
-      ),
-    );
-    return [
-      ...(firstPage.resultados ?? []),
-      ...remainingPages.flatMap((page) => page.resultados ?? []),
-    ];
   };
 
   const showOfferDetail = (offer: Offer): void => {
@@ -353,27 +336,20 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     setError(elements);
     let succeeded = false;
     try {
-      const matchingOffers = await fetchAllMatchingOffers(controller.signal);
+      const filters = currentFilters();
+      let page = currentPage;
+      let result = await fetchOffers(filters, page, PAGE_LIMIT, controller.signal);
+      let lastPage = Math.max(1, Math.ceil(result.total / PAGE_LIMIT));
+      // A filter or mutation may have removed the current last page.
+      while (page > lastPage && loadController === controller) {
+        page = lastPage;
+        result = await fetchOffers(filters, page, PAGE_LIMIT, controller.signal);
+        lastPage = Math.max(1, Math.ceil(result.total / PAGE_LIMIT));
+      }
       if (loadController !== controller) return false;
-      const visibleOffers = view === 'applied'
-        ? matchingOffers.filter((offer) => offer.estado === 'aplicada')
-        : view === 'discarded'
-          ? matchingOffers.filter((offer) => offer.estado === 'descartada')
-          : matchingOffers.filter((offer) => !['aplicada', 'descartada'].includes(offer.estado));
-      const sortedOffers = [...visibleOffers].sort((left, right) => {
-        switch (elements.orden.value as SortOrder) {
-          case 'score': return (right.score_encaje ?? -1) - (left.score_encaje ?? -1);
-          case 'empresa': return left.empresa.localeCompare(right.empresa, 'es');
-          case 'estado': return left.estado.localeCompare(right.estado, 'es');
-          default: return Date.parse(right.fecha_descubrimiento) - Date.parse(left.fecha_descubrimiento);
-        }
-      });
-      totalOffers = sortedOffers.length;
-      const totalPages = Math.max(1, Math.ceil(totalOffers / PAGE_LIMIT));
-      currentPage = Math.min(currentPage, totalPages);
-      const firstOffer = (currentPage - 1) * PAGE_LIMIT;
-      offers = sortedOffers.slice(firstOffer, firstOffer + PAGE_LIMIT);
-      activeOffers = totalOffers;
+      currentPage = page;
+      totalOffers = result.total;
+      offers = result.resultados;
       setStatusText(elements, 'API conectada', false);
       succeeded = true;
     } catch (error) {
@@ -381,7 +357,6 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
       if (loadController !== controller) return false;
       offers = [];
       totalOffers = 0;
-      activeOffers = 0;
       setStatusText(elements, 'Sin conexión', false);
       const message = error instanceof ApiError
         ? error.status === 401 || error.status === 403
@@ -400,7 +375,7 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
     if (loadController !== controller) return false;
     renderOffers(elements, offers, totalOffers, currentPage, PAGE_LIMIT, labels, openDetail, requestDeleteOffer, primaryAction, pendingActions);
     if (succeeded) {
-      elements.total.textContent = String(activeOffers);
+      elements.total.textContent = String(totalOffers);
       if (actionsNeedingRefresh.size > 0) {
         setError(elements, 'Hay acciones pendientes de verificar. Vuelve a consultar antes de repetirlas.');
       }

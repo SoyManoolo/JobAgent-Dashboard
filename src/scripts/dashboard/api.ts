@@ -1,4 +1,4 @@
-import type { DashboardStats, FormAnswerUpdate, FormAnswerUpdateResponse, Offer, OffersResponse, OfferUpdate } from './types';
+import type { DashboardStats, FormAnswerUpdate, FormAnswerUpdateResponse, Offer, OfferStatus, OffersResponse, OfferUpdate } from './types';
 
 export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api/v1';
 export const PAGE_LIMIT = 10;
@@ -15,29 +15,28 @@ const apiError = async (response: Response, fallback: string): Promise<ApiError>
   return new ApiError(payload?.detail || fallback, response.status);
 };
 
-export const buildApiParams = (filters: {
+type OfferFilters = {
   empresa: string;
   estado: string;
   perfil: string;
   score: string;
   sencilla: string;
-}, page: number, limit: number): URLSearchParams => {
-  const params = new URLSearchParams({ pagina: String(page), limite: String(limit) });
+  orden: string;
+  excludeStates: readonly OfferStatus[];
+};
+
+export const buildApiParams = (filters: OfferFilters, page: number, limit: number): URLSearchParams => {
+  const params = new URLSearchParams({ pagina: String(page), limite: String(limit), orden: filters.orden });
   if (filters.empresa) params.set('empresa', filters.empresa);
   if (filters.estado) params.set('estado', filters.estado);
   if (filters.perfil) params.set('perfil', filters.perfil);
   if (filters.score) params.set('score_min', filters.score);
   if (filters.sencilla) params.set('aplicacion_sencilla', filters.sencilla);
+  filters.excludeStates.forEach((estado) => params.append('excluir_estados', estado));
   return params;
 };
 
-export const fetchOffers = async (filters: {
-  empresa: string;
-  estado: string;
-  perfil: string;
-  score: string;
-  sencilla: string;
-}, page: number, limit: number, signal?: AbortSignal): Promise<OffersResponse> => {
+export const fetchOffers = async (filters: OfferFilters, page: number, limit: number, signal?: AbortSignal): Promise<OffersResponse> => {
   const response = await fetch(`${API_BASE_URL}/ofertas/?${buildApiParams(filters, page, limit)}`, { signal });
   if (!response.ok) throw await apiError(response, `La API respondió con error ${response.status}`);
   return (await response.json()) as OffersResponse;
