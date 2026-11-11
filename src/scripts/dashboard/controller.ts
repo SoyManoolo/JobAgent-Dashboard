@@ -11,7 +11,6 @@ import {
   submitEasyApply,
   updateOfferAnswer,
   updateOfferById,
-  updateOfferNotes,
 } from './api';
 import { getDashboardElements } from './dom';
 import { validOfferUrl } from './offer-url';
@@ -170,18 +169,14 @@ export const initJobDashboard = (view: DashboardView = 'active'): void => {
 
       save.disabled = true;
       const notesValue = notes.value || null;
-      const updated = await (async () => {
-        const changes = {
-          ...(nextStatus !== offer.estado ? { estado: nextStatus } : {}),
-          ...(nextEasyApply !== offer.aplicacion_sencilla ? { aplicacion_sencilla: nextEasyApply } : {}),
-        };
-        const statusUpdated = Object.keys(changes).length === 0
-          ? offer
-          : await updateOfferById(offer.id, changes);
-        return notesValue === offer.notas
-          ? statusUpdated
-          : updateOfferNotes(offer.id, notesValue);
-      })().catch(() => undefined);
+      const changes = {
+        ...(nextStatus !== offer.estado ? { estado: nextStatus } : {}),
+        ...(nextEasyApply !== offer.aplicacion_sencilla ? { aplicacion_sencilla: nextEasyApply } : {}),
+        ...(notesValue !== offer.notas ? { notas: notesValue } : {}),
+      };
+      const updated = Object.keys(changes).length === 0
+        ? offer
+        : await updateOfferById(offer.id, changes).catch(() => undefined);
       if (!updated) { showToast(elements, 'No se pudieron guardar los cambios.'); save.disabled = false; return; }
       showOfferDetail(updated);
       await loadOffers();

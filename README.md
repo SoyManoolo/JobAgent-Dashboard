@@ -66,8 +66,7 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 | --- | --- | --- |
 | `GET` | `/ofertas/` | Lista filtrada y paginada de ofertas. |
 | `GET` | `/ofertas/{id}` | Detalle de una oferta. |
-| `PATCH` | `/ofertas/{id}` | Actualización manual del estado. |
-| `PATCH` | `/dashboard/ofertas/{id}/notas` | Guardado de notas. |
+| `PATCH` | `/ofertas/{id}` | Actualización conjunta del estado, el tipo de solicitud y las notas. |
 | `DELETE` | `/ofertas/{id}` | Eliminación lógica de una oferta. |
 | `GET` | `/dashboard/stats` | Métricas del panel. |
 | `POST` | `/agent/ofertas/procesar/{id}` | Análisis y clasificación de una oferta extraída. |

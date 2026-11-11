@@ -66,16 +66,6 @@ export const updateOfferById = async (id: string, data: OfferUpdate): Promise<Of
   return response.json() as Promise<Offer>;
 };
 
-export const updateOfferNotes = async (id: string, notas: string | null): Promise<Offer> => {
-  const response = await fetch(`${API_BASE_URL}/dashboard/ofertas/${id}/notas`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ notas }),
-  });
-  if (!response.ok) throw new Error('No se pudieron actualizar las notas');
-  return response.json() as Promise<Offer>;
-};
-
 export const analyzeOffer = async (id: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/agent/ofertas/procesar/${id}`, { method: 'POST' });
   if (!response.ok) throw new Error('No se pudo analizar la oferta');
