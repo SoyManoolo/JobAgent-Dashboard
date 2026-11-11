@@ -35,7 +35,7 @@ En ofertas que no usan Easy Apply, después del análisis se muestra **Abrir ofe
 
 - Node.js `>= 22.12.0`.
 - `pnpm`.
-- Backend de JobAgent accesible desde el navegador y configurado con CORS para el origen del dashboard.
+- Backend de JobAgent con soporte de `orden` y `excluir_estados` en `GET /ofertas/`, accesible desde el navegador y configurado con CORS para el origen del dashboard.
 
 ## Puesta en marcha
 
@@ -66,8 +66,7 @@ PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 | --- | --- | --- |
 | `GET` | `/ofertas/` | Lista filtrada y paginada de ofertas. |
 | `GET` | `/ofertas/{id}` | Detalle de una oferta. |
-| `PATCH` | `/ofertas/{id}` | Actualización manual del estado. |
-| `PATCH` | `/dashboard/ofertas/{id}/notas` | Guardado de notas. |
+| `PATCH` | `/ofertas/{id}` | Actualización conjunta del estado, el tipo de solicitud y las notas. |
 | `DELETE` | `/ofertas/{id}` | Eliminación lógica de una oferta. |
 | `GET` | `/dashboard/stats` | Métricas del panel. |
 | `POST` | `/agent/ofertas/procesar/{id}` | Análisis y clasificación de una oferta extraída. |
